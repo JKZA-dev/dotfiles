@@ -1,4 +1,4 @@
-# dotfiles 🚀
+# dotfiles 
 
 Mein komplettes Fedora Setup – automatisiert mit Ansible.
 
