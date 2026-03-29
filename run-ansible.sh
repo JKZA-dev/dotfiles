@@ -37,7 +37,7 @@ echo "  2) Server   – Fedora Server (Pakete, ZSH, Dotfiles, SSH – kein KDE/G
 echo ""
 
 while true; do
-    read -p "Auswahl [1/2]: " auswahl
+    read -p "Auswahl [1/2]: " auswahl < /dev/tty
     case $auswahl in
         1) INSTALL_MODE="desktop"; break ;;
         2) INSTALL_MODE="server";  break ;;
