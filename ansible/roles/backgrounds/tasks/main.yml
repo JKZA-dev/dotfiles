@@ -1,0 +1,18 @@
+# Rolle: backgrounds – Hintergrundbilder kopieren
+#
+# Kopiert deine Hacknet-Wallpaper nach ~/Pictures/Hacknet/
+# damit KDE Plasma sie als Hintergrundbild finden kann.
+---
+
+- name: "~/Pictures/Hacknet/ erstellen"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/Pictures/Hacknet"
+    state: directory
+    mode: "0755"
+
+- name: "Hintergrundbilder kopieren"
+  ansible.builtin.copy:
+    src: "{{ dotfiles_dir }}/Backgrounds/Pictures/Hacknet/"
+    dest: "{{ ansible_env.HOME }}/Pictures/Hacknet/"
+    remote_src: true
+    mode: "0644"

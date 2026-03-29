@@ -1,0 +1,29 @@
+# Haupt-Playbook – Steuert den gesamten Setup-Prozess
+#
+# Unterstützt zwei Modi (über Variable "install_mode"):
+#   - "desktop" → Alles (Pakete, ZSH, Dotfiles, SSH, Wallpaper, KDE)
+#   - "server"  → Nur Terminal-Setup (Pakete, ZSH, Dotfiles, SSH)
+#
+# Der Modus wird vom Bootstrap-Script übergeben:
+#   --extra-vars "install_mode=desktop"
+---
+- name: "Fedora {{ install_mode | default('desktop') | capitalize }} einrichten"
+  hosts: workstation
+  become: false
+
+  vars:
+    dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
+    omz_dir: "{{ ansible_env.HOME }}/.oh-my-zsh"
+    local_user: "{{ ansible_env.USER }}"
+    install_mode: "desktop"   # Standard falls nicht angegeben
+
+  roles:
+    # Gemeinsam (Desktop + Server)
+    - { role: packages,    tags: packages }
+    - { role: zsh,         tags: zsh }
+    - { role: dotfiles,    tags: dotfiles }
+    - { role: ssh_config,  tags: ssh }
+
+    # Nur Desktop
+    - { role: backgrounds, tags: backgrounds, when: install_mode == 'desktop' }
+    - { role: kde,         tags: kde,         when: install_mode == 'desktop' }

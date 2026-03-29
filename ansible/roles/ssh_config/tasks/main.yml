@@ -1,0 +1,38 @@
+# Rolle: ssh_config – SSH-Dateien einrichten
+#
+# Kopiert deinen Public Key und known_hosts auf den neuen Rechner.
+#
+# WICHTIG: Der Private Key (id_ed25519, OHNE .pub) ist NICHT im Repo –
+# das ist richtig so! Den musst du manuell übertragen.
+---
+
+# SSH ist streng bei Berechtigungen:
+# ~/.ssh/ muss 0700 sein (nur Besitzer darf rein)
+
+- name: "~/.ssh/ erstellen (mode 0700)"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0700"
+
+# SSH Public und Private key gehören zusammen,
+# und ich möchte auf einer neuen Maschine ja vielleicht einen neuen Key generieren
+# bzw. für einen Server ja garkeinen
+# Deswegen würde ich den Public key einfach mal in den Dofiles lassen und Private über Secrets machen
+#
+# - name: "Public Key kopieren"
+#   ansible.builtin.copy:
+#     src: "{{ dotfiles_dir }}/ssh/.ssh/id_ed25519.pub"
+#     dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519.pub"
+#     mode: "0644"
+
+- name: "known_hosts kopieren"
+  ansible.builtin.copy:
+    src: "{{ dotfiles_dir }}/ssh/.ssh/known_hosts"
+    dest: "{{ ansible_env.HOME }}/.ssh/known_hosts"
+    mode: "0644"
+
+
+- name: "Erinnerung: Private Key"
+  ansible.builtin.debug:
+    msg: " REMINDER: Vergiss nicht deinen SSH Private Key manuell zu übertragen du lümmel! Danach: chmod 600 ~/.ssh/id_ed25519"

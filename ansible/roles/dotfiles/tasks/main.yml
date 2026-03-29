@@ -1,0 +1,67 @@
+# Rolle: dotfiles – Konfigurationen per GNU Stow verlinken
+#
+# Stow erstellt Symlinks vom Repo an die Stellen, wo Programme
+# ihre Configs erwarten. Beispiel:
+#
+#   ~/dotfiles/nvim/.config/nvim/init.lua
+#     → wird verlinkt nach → ~/.config/nvim/init.lua
+#
+# Die Dateien existieren nur EINMAL (im Repo), aber das System findet
+# sie am erwarteten Ort. So kann man alles per Git versionieren.
+#
+# "stow --restow" entfernt alte Symlinks und erstellt neue – sicher
+# bei mehrfacher Ausführung.
+---
+
+# Bestehende Dateien sichern die Stow blockieren würden.
+# Oh-My-Zsh erstellt z.B. eigene custom-Dateien die im Weg sind.
+
+- name: "Bestehende Oh-My-Zsh custom-Dateien sichern"
+  ansible.builtin.command:
+    cmd: "mv {{ omz_dir }}/custom/{{ item }} {{ omz_dir }}/custom/{{ item }}.bak"
+    removes: "{{ omz_dir }}/custom/{{ item }}"  # nur ausführen wenn Datei existiert
+  loop:
+    - aliases.zsh
+    - startupcode.zsh
+    - Device.txt
+    - example.zsh
+  ignore_errors: true
+
+
+# .zshrc sichern (nur wenn es eine echte Datei ist, kein Symlink)
+
+- name: "Prüfen ob ~/.zshrc ein Symlink ist"
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+  register: zshrc_file
+
+- name: "Bestehende ~/.zshrc sichern"
+  ansible.builtin.command:
+    cmd: "mv {{ ansible_env.HOME }}/.zshrc {{ ansible_env.HOME }}/.zshrc.bak"
+  when:
+    - zshrc_file.stat.exists
+    - not zshrc_file.stat.islnk
+
+
+# ~/.config muss existieren, bevor Stow Symlinks darin erstellen kann
+
+- name: "~/.config Verzeichnis sicherstellen"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config"
+    state: directory
+    mode: "0755"
+
+
+# Stow für jedes Paket ausführen.
+# Jedes Paket entspricht einem Ordner im dotfiles-Repo der die
+# Verzeichnisstruktur ab ~ nachbildet.
+
+- name: "Dotfiles per Stow verlinken: {{ item }}"
+  ansible.builtin.command:
+    cmd: "stow --restow --target={{ ansible_env.HOME }} {{ item }}"
+    chdir: "{{ dotfiles_dir }}"
+  loop:
+    - zsh         # .zshrc + .oh-my-zsh/custom/*
+    - nvim        # .config/nvim/
+    - fastfetch   # .config/fastfetch/
+  changed_when: true

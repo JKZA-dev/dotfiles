@@ -1,0 +1,65 @@
+# Rolle: zsh – Oh-My-Zsh, Powerlevel10k & Plugins
+#
+# Richtet deine komplette ZSH-Umgebung ein:
+#   - Oh-My-Zsh (Framework für ZSH-Konfiguration)
+#   - Powerlevel10k (schnelles, schickes Theme)
+#   - zsh-autosuggestions (schlägt Befehle aus der History vor)
+#   - zsh-syntax-highlighting (färbt Befehle ein: grün=OK, rot=Fehler)
+#   - ZSH als Standard-Shell setzen
+---
+
+# Oh-My-Zsh installieren (nur wenn noch nicht vorhanden)
+# "--unattended" und RUNZSH=no verhindern, dass das Script
+# auf Eingaben wartet oder ZSH startet – sonst hängt Ansible.
+
+- name: "Prüfen ob Oh-My-Zsh installiert ist"
+  ansible.builtin.stat:
+    path: "{{ omz_dir }}"
+  register: omz_installed
+
+- name: "Oh-My-Zsh installieren"
+  ansible.builtin.shell: >
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    --unattended
+  args:
+    creates: "{{ omz_dir }}"
+  environment:
+    RUNZSH: "no"
+  when: not omz_installed.stat.exists
+
+
+# Plugins und Theme per git klonen.
+# "depth: 1" = nur neuesten Stand laden (spart Zeit).
+# Falls schon vorhanden, macht Ansible ein Update (git pull).
+
+- name: "Powerlevel10k Theme installieren"
+  ansible.builtin.git:
+    repo: "https://github.com/romkatv/powerlevel10k.git"
+    dest: "{{ omz_dir }}/custom/themes/powerlevel10k"
+    depth: 1
+    version: master
+
+- name: "Plugin: zsh-autosuggestions"
+  ansible.builtin.git:
+    repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
+    dest: "{{ omz_dir }}/custom/plugins/zsh-autosuggestions"
+    depth: 1
+    version: master
+
+- name: "Plugin: zsh-syntax-highlighting"
+  ansible.builtin.git:
+    repo: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    dest: "{{ omz_dir }}/custom/plugins/zsh-syntax-highlighting"
+    depth: 1
+    version: master
+
+
+# Standard-Shell auf ZSH setzen.
+# Braucht sudo weil es /etc/passwd ändert.
+# Wirkt nach dem nächsten Login.
+
+- name: "ZSH als Standard-Shell setzen"
+  become: true
+  ansible.builtin.user:
+    name: "{{ local_user }}"
+    shell: /bin/zsh

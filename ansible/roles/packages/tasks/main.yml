@@ -1,0 +1,76 @@
+# Rolle: packages – System-Pakete installieren
+#
+# Installiert Basis-Pakete (immer) und Desktop-Pakete (nur im Desktop-Modus).
+# "state: present" = installiere falls nicht vorhanden, überspringe sonst.
+---
+
+# Basis-Pakete – werden IMMER installiert (Desktop + Server)
+
+- name: "Basis-Pakete installieren"
+  become: true
+  ansible.builtin.dnf5:
+    name:
+      - zsh
+      - git
+      - stow
+      - curl
+      - zip
+      - btop
+      - fastfetch
+      - neovim
+      - python3-pip
+      - ninja-build
+      - cmatrix
+      - lolcat
+      - yt-dlp
+    state: present
+
+
+# Desktop-Pakete – nur im Desktop-Modus (GUI-Programme, KDE-Sachen)
+
+- name: "Desktop-Pakete installieren"
+  become: true
+  ansible.builtin.dnf5:
+    name:
+      - gimp
+      - kicad
+      - plasma-browser-integration
+    state: present
+  when: install_mode == 'desktop'
+
+
+# Microsoft Edge – nur Desktop
+
+- name: "Prüfen ob Microsoft Edge Repository existiert"
+  ansible.builtin.stat:
+    path: /etc/yum.repos.d/microsoft-edge.repo
+  register: edge_repo
+  when: install_mode == 'desktop'
+
+- name: "Microsoft Edge Repository hinzufügen"
+  become: true
+  ansible.builtin.yum_repository:
+    name: microsoft-edge
+    description: "Microsoft Edge Browser"
+    baseurl: "https://packages.microsoft.com/yumrepos/edge"
+    gpgcheck: true
+    gpgkey: "https://packages.microsoft.com/keys/microsoft.asc"
+    enabled: true
+  when:
+    - install_mode == 'desktop'
+    - not (edge_repo.stat.exists | default(false))
+
+- name: "Microsoft Edge installieren"
+  become: true
+  ansible.builtin.dnf5:
+    name: microsoft-edge-stable
+    state: present
+  when: install_mode == 'desktop'
+
+
+# speedtest-cli per pip (immer)
+
+- name: "speedtest-cli per pip installieren"
+  ansible.builtin.pip:
+    name: speedtest-cli
+    extra_args: --user

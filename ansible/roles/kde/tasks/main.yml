@@ -1,0 +1,54 @@
+# Rolle: kde – KDE Plasma Profil mit Konsave
+#
+# Importiert dein KDE-Setup (Theme, Icons, Panels, Widgets, Farben)
+# und fragt ob es direkt angewendet werden soll.
+#
+# Wird nur im Desktop-Modus ausgeführt (gesteuert über setup.yml).
+---
+
+- name: "Konsave per pip installieren"
+  ansible.builtin.pip:
+    name: konsave
+    extra_args: --user
+
+
+# Prüfen ob Profil schon importiert ist
+
+- name: "Importierte Konsave-Profile auflisten"
+  ansible.builtin.command:
+    cmd: "{{ ansible_env.HOME }}/.local/bin/konsave -l"
+  register: konsave_profiles
+  changed_when: false
+  ignore_errors: true
+
+- name: "KDE-Profil importieren"
+  ansible.builtin.command:
+    cmd: "{{ ansible_env.HOME }}/.local/bin/konsave -i {{ dotfiles_dir }}/konsave/JKZA-KDE-Workstation.knsv"
+  when: >
+    konsave_profiles.rc != 0 or
+    'JKZA-KDE-Workstation' not in konsave_profiles.stdout
+
+
+# Nachfragen ob das Profil direkt angewendet werden soll.
+# "pause" hält das Playbook an und wartet auf Eingabe.
+
+- name: "KDE-Profil jetzt anwenden? (y/n)"
+  ansible.builtin.pause:
+    prompt: >
+      KDE-Profil 'JKZA-KDE-Workstation' wurde importiert.
+
+      Soll es JETZT angewendet werden? Das überschreibt dein aktuelles KDE-Layout.
+      Nach dem Anwenden musst du dich ausloggen/einloggen.
+
+      Anwenden? (y/n)
+  register: kde_anwenden
+
+- name: "KDE-Profil anwenden"
+  ansible.builtin.command:
+    cmd: "{{ ansible_env.HOME }}/.local/bin/konsave -a JKZA-KDE-Workstation"
+  when: kde_anwenden.user_input | lower in ['y', 'yes']
+
+- name: "KDE-Profil wurde NICHT angewendet"
+  ansible.builtin.debug:
+    msg: "Profil nicht angewendet. Manuell anwenden: konsave -a JKZA-KDE-Workstation"
+  when: kde_anwenden.user_input | lower not in ['y', 'yes']
