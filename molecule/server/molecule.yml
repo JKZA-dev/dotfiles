@@ -1,0 +1,47 @@
+---
+# Molecule-Konfiguration – Server-Szenario
+#
+# Testet das minimale Server-Setup (kein GUI):
+#   - Alle Basis-Pakete (zsh, neovim, btop, fastfetch, ...)
+#   - KEINE Desktop-Pakete (kein gimp, kicad, edge, plasma)
+#   - ZSH als Standard-Shell
+#   - Dotfiles-Symlinks (nvim, fastfetch, zshrc)
+#   - SSH-Verzeichnis
+#   - KEIN Backgrounds-Verzeichnis
+#
+# Ausführen: molecule test -s server
+
+dependency:
+  name: galaxy
+
+driver:
+  name: podman
+
+platforms:
+  - name: fedora-server
+    image: quay.io/fedora/fedora:latest
+    pre_build_image: true
+    privileged: true
+    capabilities:
+      - SYS_ADMIN
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      stdout_callback: yaml
+  inventory:
+    group_vars:
+      all:
+        install_mode: server
+  playbooks:
+    converge: ../default/converge.yml
+    verify: ../default/verify.yml
+  env:
+    ANSIBLE_FORCE_COLOR: "true"
+    PY_COLORS: "1"
+  log: true
+
+verifier:
+  name: ansible

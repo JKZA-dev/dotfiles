@@ -1,0 +1,111 @@
+---
+# GitHub Actions Workflow – Ansible Molecule Tests
+#
+# Führt automatisch Molecule-Tests aus bei:
+#   - Push auf main oder develop
+#   - Pull Requests auf main oder develop
+#   - Manuellem Trigger (Actions-Tab → "Run workflow")
+#
+# Szenarien:
+#   desktop – Vollständiges KDE-Setup (Pakete, ZSH, Dotfiles, SSH, Backgrounds)
+#   server  – Minimales Server-Setup (Pakete, ZSH, Dotfiles, SSH – kein GUI)
+#
+# Beide Szenarien laufen PARALLEL für schnelleres Feedback.
+
+name: Ansible Molecule Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "Molecule-Szenario (desktop, server oder leer für beide)"
+        required: false
+        default: ""
+
+jobs:
+  molecule:
+    name: "Molecule [${{ matrix.scenario }}]"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        scenario:
+          - desktop
+          - server
+      fail-fast: false  # Weiterlaufen auch wenn ein Szenario fehlschlägt
+
+    steps:
+      # ---------------------------------------------------------------- #
+      # Repository auschecken                                             #
+      # ---------------------------------------------------------------- #
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------------- #
+      # Python einrichten                                                 #
+      # ---------------------------------------------------------------- #
+      - name: Python 3.12 einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # ---------------------------------------------------------------- #
+      # Podman installieren und konfigurieren                             #
+      # ---------------------------------------------------------------- #
+      - name: Podman installieren
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq podman
+
+      - name: Podman-Version prüfen
+        run: podman version
+
+      # ---------------------------------------------------------------- #
+      # Python-Abhängigkeiten installieren                                #
+      # ---------------------------------------------------------------- #
+      - name: Python-Abhängigkeiten installieren
+        run: pip install -r requirements.txt
+
+      # ---------------------------------------------------------------- #
+      # Molecule-Test ausführen                                           #
+      # ---------------------------------------------------------------- #
+      - name: "Molecule test – ${{ matrix.scenario }}"
+        run: molecule test -s ${{ matrix.scenario }}
+        env:
+          PY_COLORS: "1"
+          ANSIBLE_FORCE_COLOR: "1"
+          # Podman-spezifische Konfiguration für CI
+          MOLECULE_DRIVER_NAME: podman
+
+      # ---------------------------------------------------------------- #
+      # Logs bei Fehler hochladen (für Debugging)                         #
+      # ---------------------------------------------------------------- #
+      - name: Molecule-Logs bei Fehler hochladen
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: molecule-logs-${{ matrix.scenario }}-${{ github.run_id }}
+          path: |
+            ~/.cache/molecule/
+            /tmp/molecule/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      # ---------------------------------------------------------------- #
+      # Container aufräumen (auch bei Fehler)                             #
+      # ---------------------------------------------------------------- #
+      - name: Container aufräumen
+        if: always()
+        run: molecule destroy -s ${{ matrix.scenario }} || true
+        env:
+          PY_COLORS: "1"

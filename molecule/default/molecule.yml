@@ -1,0 +1,42 @@
+---
+# Molecule-Konfiguration – Basis/Desktop-Szenario
+#
+# Erstellt einen Fedora-Container mit Podman und führt das Ansible-Playbook aus.
+# Testet das vollständige Desktop-Setup (Pakete, ZSH, Dotfiles, SSH, Backgrounds).
+#
+# Ausführen:
+#   molecule test            # Standard-Szenario (Desktop)
+#   molecule test -s desktop # Explizit Desktop
+#   molecule test -s server  # Nur Server-Setup
+
+dependency:
+  name: galaxy
+
+driver:
+  name: podman
+
+platforms:
+  - name: fedora-desktop
+    image: quay.io/fedora/fedora:latest
+    pre_build_image: true
+    privileged: true
+    capabilities:
+      - SYS_ADMIN
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      stdout_callback: yaml
+  inventory:
+    group_vars:
+      all:
+        install_mode: desktop
+  env:
+    ANSIBLE_FORCE_COLOR: "true"
+    PY_COLORS: "1"
+  log: true
+
+verifier:
+  name: ansible

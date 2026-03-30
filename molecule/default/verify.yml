@@ -1,0 +1,176 @@
+---
+# Verify-Playbook – Überprüft ob das Setup korrekt ausgeführt wurde
+#
+# Prüft:
+#   1. Basis-Pakete sind installiert (zsh, neovim, btop, fastfetch, git, stow)
+#   2. ZSH ist als Standard-Shell gesetzt
+#   3. Dotfiles-Symlinks existieren (nvim, fastfetch, zshrc)
+#   4. SSH-Verzeichnis ist korrekt eingerichtet (0700, known_hosts)
+#   5. Desktop-spezifisch: gimp, kicad, Backgrounds-Verzeichnis
+#   6. Server-Modus: Desktop-Pakete sind NICHT installiert
+
+- name: Verify – Fedora Setup überprüfen
+  hosts: all
+  gather_facts: true
+  vars:
+    install_mode: "{{ install_mode | default('desktop') }}"
+
+  tasks:
+    # ------------------------------------------------------------------ #
+    # 1. Paket-Checks                                                     #
+    # ------------------------------------------------------------------ #
+    - name: Paket-Facts sammeln
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Basis-Pakete sind installiert
+      ansible.builtin.assert:
+        that:
+          - "'zsh' in ansible_facts.packages"
+          - "'neovim' in ansible_facts.packages"
+          - "'btop' in ansible_facts.packages"
+          - "'fastfetch' in ansible_facts.packages"
+          - "'git' in ansible_facts.packages"
+          - "'stow' in ansible_facts.packages"
+        fail_msg: >
+          Fehlende Basis-Pakete. Installierte Pakete (Auswahl):
+          zsh={{ 'zsh' in ansible_facts.packages }},
+          neovim={{ 'neovim' in ansible_facts.packages }},
+          btop={{ 'btop' in ansible_facts.packages }},
+          fastfetch={{ 'fastfetch' in ansible_facts.packages }},
+          git={{ 'git' in ansible_facts.packages }},
+          stow={{ 'stow' in ansible_facts.packages }}
+        success_msg: "Alle Basis-Pakete sind installiert"
+
+    # ------------------------------------------------------------------ #
+    # 2. ZSH-Checks                                                       #
+    # ------------------------------------------------------------------ #
+    - name: ZSH-Binary prüfen
+      ansible.builtin.stat:
+        path: /bin/zsh
+      register: zsh_bin
+
+    - name: ZSH ist installiert
+      ansible.builtin.assert:
+        that:
+          - zsh_bin.stat.exists
+          - zsh_bin.stat.executable
+        fail_msg: "/bin/zsh existiert nicht oder ist nicht ausführbar"
+        success_msg: "/bin/zsh ist vorhanden"
+
+    - name: Standard-Shell für root abfragen
+      ansible.builtin.command:
+        cmd: getent passwd root
+      register: root_entry
+      changed_when: false
+
+    - name: ZSH ist Standard-Shell für root
+      ansible.builtin.assert:
+        that:
+          - "'/bin/zsh' in root_entry.stdout"
+        fail_msg: >
+          ZSH ist nicht die Standard-Shell für root.
+          Aktueller Eintrag: {{ root_entry.stdout }}
+        success_msg: "ZSH ist die Standard-Shell für root"
+
+    # ------------------------------------------------------------------ #
+    # 3. Dotfiles-Symlink-Checks                                          #
+    # ------------------------------------------------------------------ #
+    - name: Dotfiles-Symlinks prüfen
+      ansible.builtin.stat:
+        path: "{{ item.path }}"
+      loop:
+        - { path: /root/.zshrc, name: "zshrc" }
+        - { path: /root/.config/nvim, name: "nvim config" }
+        - { path: /root/.config/fastfetch, name: "fastfetch config" }
+      register: dotfile_stats
+
+    - name: Dotfiles-Symlinks existieren und sind Symlinks
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.islnk
+        fail_msg: >
+          {{ item.item.name }} Symlink fehlt oder ist kein Symlink:
+          exists={{ item.stat.exists }}, islnk={{ item.stat.islnk | default(false) }}
+        success_msg: "{{ item.item.name }} Symlink ist korrekt"
+      loop: "{{ dotfile_stats.results }}"
+
+    # ------------------------------------------------------------------ #
+    # 4. SSH-Verzeichnis-Checks                                           #
+    # ------------------------------------------------------------------ #
+    - name: SSH-Verzeichnis prüfen
+      ansible.builtin.stat:
+        path: /root/.ssh
+      register: ssh_dir
+
+    - name: SSH-Verzeichnis existiert mit korrekten Berechtigungen
+      ansible.builtin.assert:
+        that:
+          - ssh_dir.stat.exists
+          - ssh_dir.stat.isdir
+          - ssh_dir.stat.mode == "0700"
+        fail_msg: >
+          SSH-Verzeichnis ist nicht korrekt eingerichtet:
+          exists={{ ssh_dir.stat.exists }},
+          mode={{ ssh_dir.stat.mode | default('N/A') }}
+          (erwartet: 0700)
+        success_msg: "~/.ssh/ existiert mit korrekten Berechtigungen (0700)"
+
+    - name: known_hosts prüfen
+      ansible.builtin.stat:
+        path: /root/.ssh/known_hosts
+      register: known_hosts_file
+
+    - name: known_hosts existiert
+      ansible.builtin.assert:
+        that:
+          - known_hosts_file.stat.exists
+        fail_msg: "~/.ssh/known_hosts fehlt"
+        success_msg: "~/.ssh/known_hosts ist vorhanden"
+
+    # ------------------------------------------------------------------ #
+    # 5. Desktop-spezifische Checks                                       #
+    # ------------------------------------------------------------------ #
+    - name: Desktop-Pakete sind installiert (nur Desktop-Modus)
+      ansible.builtin.assert:
+        that:
+          - "'gimp' in ansible_facts.packages"
+          - "'kicad' in ansible_facts.packages"
+        fail_msg: >
+          Desktop-Pakete fehlen:
+          gimp={{ 'gimp' in ansible_facts.packages }},
+          kicad={{ 'kicad' in ansible_facts.packages }}
+        success_msg: "Desktop-Pakete (gimp, kicad) sind installiert"
+      when: install_mode == 'desktop'
+
+    - name: Backgrounds-Verzeichnis prüfen (nur Desktop-Modus)
+      ansible.builtin.stat:
+        path: /root/Pictures/Hacknet
+      register: hacknet_dir
+      when: install_mode == 'desktop'
+
+    - name: Hintergrundbilder-Verzeichnis existiert (nur Desktop-Modus)
+      ansible.builtin.assert:
+        that:
+          - hacknet_dir.stat.exists
+          - hacknet_dir.stat.isdir
+        fail_msg: "~/Pictures/Hacknet/ fehlt"
+        success_msg: "~/Pictures/Hacknet/ ist vorhanden"
+      when: install_mode == 'desktop'
+
+    # ------------------------------------------------------------------ #
+    # 6. Server-Modus: Desktop-Pakete sind NICHT installiert              #
+    # ------------------------------------------------------------------ #
+    - name: Desktop-Pakete sind NICHT installiert (nur Server-Modus)
+      ansible.builtin.assert:
+        that:
+          - "'gimp' not in ansible_facts.packages"
+          - "'kicad' not in ansible_facts.packages"
+          - "'plasma-browser-integration' not in ansible_facts.packages"
+        fail_msg: >
+          Im Server-Modus sollten keine Desktop-Pakete installiert sein.
+          Gefunden: gimp={{ 'gimp' in ansible_facts.packages }},
+          kicad={{ 'kicad' in ansible_facts.packages }}
+        success_msg: "Keine Desktop-Pakete im Server-Modus – korrekt"
+      when: install_mode == 'server'
