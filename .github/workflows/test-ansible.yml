@@ -91,7 +91,13 @@ jobs:
       # E-Mail-Benachrichtigung bei Fehler (nur bei Push-Events)          #
       # ---------------------------------------------------------------- #
       - name: "E-Mail bei Fehler senden – ${{ matrix.scenario }}"
-        if: failure() && github.event_name == 'push'
+        if: >-
+          failure() &&
+          github.event_name == 'push' &&
+          secrets.MAIL_SERVER != '' &&
+          secrets.MAIL_TO != '' &&
+          secrets.MAIL_FROM != '' &&
+          secrets.MAIL_USERNAME != ''
         uses: dawidd6/action-send-mail@v3
         continue-on-error: true
         with:
