@@ -42,10 +42,10 @@
         - Backgrounds
 
     - name: SSH-Verzeichnis mit .ssh Unterordner kopieren
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../ssh/.ssh/"
-    dest: /root/dotfiles/ssh/.ssh/
-    mode: preserve
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../ssh/.ssh/"
+        dest: /root/dotfiles/ssh/.ssh/
+        mode: preserve
 
 
 # Schritt 3: Fedora-Setup ausführen (ohne KDE-Rolle)
