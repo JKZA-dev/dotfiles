@@ -9,12 +9,12 @@ Mein komplettes Fedora Setup – automatisiert mit Ansible.
 
 **Lokal** (direkt auf dem neuen PC):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DEIN_USER/dotfiles/main/run-ansible.sh | bash
+curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash
 ```
 
 **Per SSH** (von einem anderen Rechner aus):
 ```bash
-ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/DEIN_USER/dotfiles/main/run-ansible.sh | bash'
+ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash'
 ```
 
 Das Script fragt dich ob **Desktop** oder **Server**, installiert Git + Ansible,
