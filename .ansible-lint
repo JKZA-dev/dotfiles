@@ -1,0 +1,10 @@
+profile: min
+
+skip_list:
+  - ignore-errors    # Used intentionally in backup operations (mv with removes:)
+  - no-changed-when  # stow --restow always recreates symlinks
+
+exclude_paths:
+  - ansible/molecule/
+
+offline: true

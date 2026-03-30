@@ -1,0 +1,21 @@
+---
+# Desktop scenario: test zsh, dotfiles, ssh_config, and backgrounds roles.
+# The packages role is skipped (slow, requires full DNF install) and
+# the kde role is skipped (interactive GUI, not suitable for CI containers).
+- name: Converge (Desktop)
+  hosts: all
+  become: false
+  vars:
+    install_mode: desktop
+    dotfiles_dir: /root/dotfiles
+    omz_dir: /root/.oh-my-zsh
+    local_user: root
+  roles:
+    - role: ../../roles/zsh
+      tags: zsh
+    - role: ../../roles/dotfiles
+      tags: dotfiles
+    - role: ../../roles/ssh_config
+      tags: ssh
+    - role: ../../roles/backgrounds
+      tags: backgrounds

@@ -1,0 +1,12 @@
+---
+# Install Python3, sudo, and the tools required by the tested roles
+# (stow, git, zsh) before Ansible modules run.
+# The raw module is used because Python may not yet be present.
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install Python3 and test dependencies
+      ansible.builtin.raw: >
+        dnf install -y python3 python3-libs stow git zsh sudo
+      changed_when: false

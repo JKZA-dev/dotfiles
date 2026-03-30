@@ -1,0 +1,76 @@
+---
+- name: Verify (Server)
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check ZSH is installed
+      ansible.builtin.command: which zsh
+      register: zsh_path
+      changed_when: false
+
+    - name: Verify ZSH is available
+      ansible.builtin.assert:
+        that:
+          - zsh_path.rc == 0
+        fail_msg: "ZSH is not installed"
+
+    - name: Check ~/.config directory exists
+      ansible.builtin.stat:
+        path: /root/.config
+      register: config_dir
+
+    - name: Verify ~/.config exists
+      ansible.builtin.assert:
+        that:
+          - config_dir.stat.exists
+          - config_dir.stat.isdir
+        fail_msg: "~/.config directory does not exist"
+
+    - name: Check nvim config symlink
+      ansible.builtin.stat:
+        path: /root/.config/nvim
+      register: nvim_config
+
+    - name: Verify nvim config is symlinked
+      ansible.builtin.assert:
+        that:
+          - nvim_config.stat.exists
+          - nvim_config.stat.islnk
+        fail_msg: "Neovim config is not properly symlinked"
+
+    - name: Check fastfetch config symlink
+      ansible.builtin.stat:
+        path: /root/.config/fastfetch
+      register: fastfetch_config
+
+    - name: Verify fastfetch config is symlinked
+      ansible.builtin.assert:
+        that:
+          - fastfetch_config.stat.exists
+          - fastfetch_config.stat.islnk
+        fail_msg: "Fastfetch config is not properly symlinked"
+
+    - name: Check .zshrc symlink
+      ansible.builtin.stat:
+        path: /root/.zshrc
+      register: zshrc_stat
+
+    - name: Verify .zshrc is symlinked
+      ansible.builtin.assert:
+        that:
+          - zshrc_stat.stat.exists
+          - zshrc_stat.stat.islnk
+        fail_msg: ".zshrc is not symlinked"
+
+    - name: Check SSH directory
+      ansible.builtin.stat:
+        path: /root/.ssh
+      register: ssh_dir
+
+    - name: Verify SSH directory exists with correct permissions
+      ansible.builtin.assert:
+        that:
+          - ssh_dir.stat.exists
+          - ssh_dir.stat.isdir
+          - ssh_dir.stat.mode == '0700'
+        fail_msg: "~/.ssh does not exist or has wrong permissions (expected 0700)"

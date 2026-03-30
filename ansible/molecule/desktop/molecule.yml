@@ -1,0 +1,47 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+platforms:
+  - name: fedora-desktop
+    image: quay.io/fedora/fedora:41
+    pre_build_image: true
+    privileged: true
+    command: ""
+    volumes:
+      - "${DOTFILES_DIR}:/root/dotfiles:ro"
+
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_ROLES_PATH: "${MOLECULE_PROJECT_DIRECTORY}/roles"
+  config_options:
+    defaults:
+      interpreter_python: /usr/bin/python3
+      remote_tmp: /tmp/.ansible/tmp
+  inventory:
+    group_vars:
+      all:
+        install_mode: desktop
+        dotfiles_dir: /root/dotfiles
+        omz_dir: /root/.oh-my-zsh
+        local_user: root
+
+verifier:
+  name: ansible
+
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - cleanup
+    - destroy

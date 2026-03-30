@@ -31,6 +31,7 @@
     src: "{{ dotfiles_dir }}/ssh/.ssh/known_hosts"
     dest: "{{ ansible_env.HOME }}/.ssh/known_hosts"
     mode: "0644"
+    remote_src: true
 
 
 - name: "Erinnerung: Private Key"

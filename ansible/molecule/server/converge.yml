@@ -1,0 +1,18 @@
+---
+# Server scenario: test zsh, dotfiles, and ssh_config roles.
+# The packages role is skipped (slow, requires full DNF install).
+- name: Converge (Server)
+  hosts: all
+  become: false
+  vars:
+    install_mode: server
+    dotfiles_dir: /root/dotfiles
+    omz_dir: /root/.oh-my-zsh
+    local_user: root
+  roles:
+    - role: ../../roles/zsh
+      tags: zsh
+    - role: ../../roles/dotfiles
+      tags: dotfiles
+    - role: ../../roles/ssh_config
+      tags: ssh
