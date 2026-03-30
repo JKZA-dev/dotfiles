@@ -36,7 +36,7 @@ klont dieses Repo und richtet alles ein.
 
 ## Nach dem Setup
 
-1. SSH Private Key manuell übertragen → `chmod 600 ~/.ssh/id_ed25519`
+1. SSH Public + Private Key manuell übertragen / generieren → `chmod 600 ~/.ssh/id_ed25519`
 2. Ausloggen/einloggen (damit ZSH aktiv wird)
 3. (Desktop) KDE-Profil wird während Setup nachgefragt
 
