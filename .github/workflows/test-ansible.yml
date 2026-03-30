@@ -97,7 +97,7 @@ jobs:
         with:
           server_address: ${{ secrets.MAIL_SERVER }}
           server_port: 587
-          secure: true
+          secure: false
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "❌ Ansible Molecule Test Failed - ${{ matrix.scenario }} - ${{ github.ref_name }}"
