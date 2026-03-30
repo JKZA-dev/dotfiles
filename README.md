@@ -1,5 +1,7 @@
 # dotfiles 
 
+[![Tests](https://github.com/JKZA-dev/dotfiles/actions/workflows/test-ansible.yml/badge.svg)](https://github.com/JKZA-dev/dotfiles/actions/workflows/test-ansible.yml)
+
 Mein komplettes Fedora Setup – automatisiert mit Ansible.
 
 **Ein Befehl, fertig eingerichteter PC.**

@@ -30,7 +30,7 @@ provisioner:
   config_options:
     defaults:
       interpreter_python: auto_silent
-      stdout_callback: yaml
+      result_format: yaml
   inventory:
     group_vars:
       all:

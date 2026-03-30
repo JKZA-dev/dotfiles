@@ -41,6 +41,13 @@
         - ssh
         - Backgrounds
 
+    - name: SSH-Verzeichnis mit .ssh Unterordner kopieren
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../ssh/.ssh/"
+        dest: /root/dotfiles/ssh/.ssh/
+        mode: preserve
+
+
 # Schritt 3: Fedora-Setup ausführen (ohne KDE-Rolle)
 - name: Converge – Fedora Setup
   hosts: all
@@ -49,7 +56,7 @@
     dotfiles_dir: /root/dotfiles
     local_user: root
     omz_dir: /root/.oh-my-zsh
-    install_mode: "{{ install_mode | default('desktop') }}"
+    install_mode: "{{ ansible_env.get('INSTALL_MODE', 'desktop') }}"
 
   roles:
     - role: "{{ playbook_dir }}/../../ansible/roles/packages"
