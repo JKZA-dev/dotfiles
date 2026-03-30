@@ -1,0 +1,75 @@
+---
+# Converge-Playbook – Richtet den Container für den Test ein
+#
+# Spiegelt ansible/setup.yml wider, angepasst für Container-Tests:
+#  - Dotfiles werden vom Host in den Container kopiert
+#  - KDE-Rolle wird übersprungen (interaktive Pause-Tasks)
+#  - Alle anderen Rollen laufen durch (packages, zsh, dotfiles, ssh_config, backgrounds)
+#
+# Variablen (gesetzt in molecule.yml group_vars):
+#   install_mode: desktop | server
+
+# Schritt 1: Container bootstrappen (Python3 + sudo für Ansible)
+- name: Bootstrap container
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Python3 und sudo installieren
+      ansible.builtin.raw: dnf install -y python3 sudo
+      changed_when: true
+
+# Schritt 2: Dotfiles in den Container kopieren
+- name: Dotfiles in Container kopieren
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Dotfiles-Verzeichnis erstellen
+      ansible.builtin.file:
+        path: /root/dotfiles
+        state: directory
+        mode: "0755"
+
+    - name: Benötigte Dotfile-Pakete kopieren
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../{{ item }}"
+        dest: /root/dotfiles/
+        mode: preserve
+      loop:
+        - zsh
+        - nvim
+        - fastfetch
+        - ssh
+        - Backgrounds
+
+# Schritt 3: Fedora-Setup ausführen (ohne KDE-Rolle)
+- name: Converge – Fedora Setup
+  hosts: all
+  become: true
+  vars:
+    dotfiles_dir: /root/dotfiles
+    local_user: root
+    omz_dir: /root/.oh-my-zsh
+    install_mode: "{{ install_mode | default('desktop') }}"
+
+  roles:
+    - role: "{{ playbook_dir }}/../../ansible/roles/packages"
+      tags: packages
+
+    - role: "{{ playbook_dir }}/../../ansible/roles/zsh"
+      tags: zsh
+
+    - role: "{{ playbook_dir }}/../../ansible/roles/dotfiles"
+      tags: dotfiles
+
+    - role: "{{ playbook_dir }}/../../ansible/roles/ssh_config"
+      tags: ssh
+
+    # Nur Desktop: Hintergrundbilder kopieren
+    - role: "{{ playbook_dir }}/../../ansible/roles/backgrounds"
+      tags: backgrounds
+      when: install_mode == 'desktop'
+
+    # KDE-Rolle wird bewusst übersprungen:
+    # - Enthält ansible.builtin.pause (blockiert CI)
+    # - Benötigt laufende KDE-Session
+    # Manuelles Testen: konsave -a JKZA-KDE-Workstation

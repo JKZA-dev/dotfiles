@@ -1,0 +1,19 @@
+# Python-Abhängigkeiten für Ansible Molecule Tests
+#
+# Installation:
+#   pip install -r requirements.txt
+#
+# Anforderungen:
+#   - Python 3.10+
+#   - Podman (für den Container-Driver)
+#     Fedora:  sudo dnf install podman
+#     Ubuntu:  sudo apt install podman
+
+# Ansible – Automatisierungsframework
+ansible>=9.0.0
+
+# Molecule – Test-Framework für Ansible
+molecule>=24.0.0
+
+# Molecule Podman-Driver – Container-Backend
+molecule-plugins[podman]>=23.5.0
