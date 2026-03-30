@@ -88,6 +88,33 @@ jobs:
           MOLECULE_DRIVER_NAME: podman
 
       # ---------------------------------------------------------------- #
+      # E-Mail-Benachrichtigung bei Fehler (nur bei Push-Events)          #
+      # ---------------------------------------------------------------- #
+      - name: "E-Mail bei Fehler senden – ${{ matrix.scenario }}"
+        if: failure() && github.event_name == 'push'
+        uses: dawidd6/action-send-mail@v3
+        continue-on-error: true
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: 587
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "❌ Ansible Molecule Test Failed - ${{ matrix.scenario }} - ${{ github.ref_name }}"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_FROM }}
+          body: |
+            Ansible Molecule test failed!
+
+            Scenario:  ${{ matrix.scenario }}
+            Branch:    ${{ github.ref_name }}
+            Commit:    ${{ github.sha }}
+            Author:    ${{ github.actor }}
+
+            View the failed workflow run:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      # ---------------------------------------------------------------- #
       # Logs bei Fehler hochladen (für Debugging)                         #
       # ---------------------------------------------------------------- #
       - name: Molecule-Logs bei Fehler hochladen
