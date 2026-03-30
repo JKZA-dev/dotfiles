@@ -19,6 +19,7 @@
       - fastfetch
       - neovim
       - python3-pip
+      - python3-packaging
       - ninja-build
       - cmatrix
       - lolcat
