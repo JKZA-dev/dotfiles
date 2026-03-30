@@ -3,10 +3,10 @@
 # Bootstrap-Script für dein Fedora Setup.
 #
 # Benutzung LOKAL:
-#   curl -fsSL https://raw.githubusercontent.com/DEIN_USER/dotfiles/main/run-ansible.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash
 #
 # Benutzung per SSH:
-#   ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/DEIN_USER/dotfiles/main/run-ansible.sh | bash'
+#   ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash'
 #
 
 # Farben
@@ -21,7 +21,7 @@ erfolg()  { echo -e "${GRUEN}[OK]${RESET} $1"; }
 fehler()  { echo -e "${ROT}[FEHLER]${RESET} $1"; exit 1; }
 
 DOTFILES_DIR="$HOME/dotfiles"
-REPO_URL="https://github.com/DEIN_USER/dotfiles.git"  # Mein Profil in URL eingeben!
+REPO_URL="https://github.com/JKZA-dev/dotfiles.git"
 
 echo ""
 echo -e "${GELB}  Fedora Workstation/Server Setup${RESET}"
@@ -98,7 +98,7 @@ echo ""
 echo -e "${GRUEN}  Setup abgeschlossen!${RESET}"
 echo ""
 echo "  Nächste Schritte:"
-echo "    1. SSH Private Key manuell übertragen + chmod 600 ~/.ssh/id_ed25519"
+echo "    1. SSH Public + Private Key manuell übertragen + chmod 600 ~/.ssh/id_ed25519"
 
 if [ "$INSTALL_MODE" = "desktop" ]; then
     echo "    2. Ausloggen/einloggen (damit ZSH + KDE-Profil aktiv wird)"
