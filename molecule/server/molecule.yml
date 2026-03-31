@@ -35,6 +35,7 @@ provisioner:
     group_vars:
       all:
         install_mode: server
+        molecule_test: true
   playbooks:
     converge: ../default/converge.yml
     verify: ../default/verify.yml

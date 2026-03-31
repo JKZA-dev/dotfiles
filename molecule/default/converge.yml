@@ -1,82 +1,31 @@
 ---
-# Converge-Playbook – Richtet den Container für den Test ein
+# Converge – Führt das Ansible-Playbook aus
 #
-# Spiegelt ansible/setup.yml wider, angepasst für Container-Tests:
-#  - Dotfiles werden vom Host in den Container kopiert
-#  - KDE-Rolle wird übersprungen (interaktive Pause-Tasks)
-#  - Alle anderen Rollen laufen durch (packages, zsh, dotfiles, ssh_config, backgrounds)
+# Diese Datei importiert einfach das Haupt-Playbook (ansible/setup.yml).
+# Die Modi (Desktop vs Server) werden durch install_mode definiert,
+# die in molecule.yml gesetzt wird.
 #
-# Variablen (gesetzt in molecule.yml group_vars):
-#   install_mode: desktop | server
-
-# Schritt 1: Container bootstrappen (Python3 + sudo für Ansible)
-- name: Bootstrap container
+# Vorbereitung: Dotfiles in den Container kopieren
+- name: Prepare – Bootstrap und Dotfiles kopieren
   hosts: all
   gather_facts: false
   tasks:
-    - name: Python3 und sudo installieren
+    - name: Python3 und sudo installieren (für Ansible)
       ansible.builtin.raw: dnf install -y python3 sudo
       changed_when: true
 
-# Schritt 2: Dotfiles in den Container kopieren
-- name: Dotfiles in Container kopieren
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: Dotfiles-Verzeichnis erstellen
-      ansible.builtin.file:
-        path: /root/dotfiles
-        state: directory
-        mode: "0755"
-
-    - name: Benötigte Dotfile-Pakete kopieren
+    - name: Dotfiles in Container kopieren
       ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../{{ item }}"
+        src: "{{ item }}"
         dest: /root/dotfiles/
         mode: preserve
       loop:
-        - zsh
-        - nvim
-        - fastfetch
-        - ssh
-        - Backgrounds
+        - "{{ playbook_dir }}/../../zsh"
+        - "{{ playbook_dir }}/../../nvim"
+        - "{{ playbook_dir }}/../../fastfetch"
+        - "{{ playbook_dir }}/../../ssh"
+        - "{{ playbook_dir }}/../../Backgrounds"
 
-    - name: SSH-Verzeichnis mit .ssh Unterordner kopieren
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../../ssh/.ssh/"
-        dest: /root/dotfiles/ssh/.ssh/
-        mode: preserve
-
-
-# Schritt 3: Fedora-Setup ausführen (ohne KDE-Rolle)
-- name: Converge – Fedora Setup
-  hosts: all
-  become: true
-  vars:
-    dotfiles_dir: /root/dotfiles
-    local_user: root
-    omz_dir: /root/.oh-my-zsh
-    install_mode: "{{ ansible_env.get('INSTALL_MODE', 'desktop') }}"
-
-  roles:
-    - role: "{{ playbook_dir }}/../../ansible/roles/packages"
-      tags: packages
-
-    - role: "{{ playbook_dir }}/../../ansible/roles/zsh"
-      tags: zsh
-
-    - role: "{{ playbook_dir }}/../../ansible/roles/dotfiles"
-      tags: dotfiles
-
-    - role: "{{ playbook_dir }}/../../ansible/roles/ssh_config"
-      tags: ssh
-
-    # Nur Desktop: Hintergrundbilder kopieren
-    - role: "{{ playbook_dir }}/../../ansible/roles/backgrounds"
-      tags: backgrounds
-      when: install_mode == 'desktop'
-
-    # KDE-Rolle wird bewusst übersprungen:
-    # - Enthält ansible.builtin.pause (blockiert CI)
-    # - Benötigt laufende KDE-Session
-    # Manuelles Testen: konsave -a JKZA-KDE-Workstation
+# Haupt-Setup: Importiere das echte Ansible-Playbook
+- name: Converge – Import ansible/setup.yml
+  ansible.builtin.import_playbook: ../../ansible/setup.yml

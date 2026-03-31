@@ -33,6 +33,7 @@ provisioner:
     group_vars:
       all:
         install_mode: desktop
+        molecule_test: true
   env:
     ANSIBLE_FORCE_COLOR: "true"
     PY_COLORS: "1"
