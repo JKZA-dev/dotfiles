@@ -24,6 +24,7 @@
       - cmatrix
       - lolcat
       - yt-dlp
+      - Tmux
     state: present
 
 
@@ -36,6 +37,7 @@
       - gimp
       - kicad
       - plasma-browser-integration
+      - applet-window-buttons
     state: present
   when: install_mode == 'desktop'
 
@@ -75,3 +77,24 @@
   ansible.builtin.pip:
     name: speedtest-cli
     extra_args: --user
+
+
+# Flatpak – nur Desktop
+
+- name: "Flathub Remote hinzufügen"
+  become: true
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: "https://dl.flathub.org/repo/flathub.flatpakrepo"
+    method: system
+  when: install_mode == 'desktop'
+
+- name: "Desktop-Flatpaks installieren"
+  become: true
+  community.general.flatpak:
+    name:
+      - com.example.App
+    state: present
+    method: system
+  when: install_mode == 'desktop'

@@ -1,0 +1,3 @@
+[submodule "applets/window-title"]
+	path = applets/window-title
+	url = https://github.com/psifidotos/applet-window-title.git

@@ -78,7 +78,15 @@ else
 fi
 
 
-# Schritt 5: Ansible Playbook ausführen
+# Schritt 5: Ansible Collections installieren
+
+info "Installiere Ansible Collections..."
+ansible-galaxy collection install -r "$DOTFILES_DIR/ansible/requirements.yml" \
+    || fehler "Ansible Collections konnten nicht installiert werden!"
+erfolg "Ansible Collections sind bereit"
+
+
+# Schritt 6: Ansible Playbook ausführen
 # --extra-vars übergibt den gewählten Modus an Ansible
 
 info "Starte Ansible Playbook (Modus: ${INSTALL_MODE})..."
