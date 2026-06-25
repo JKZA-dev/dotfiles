@@ -82,6 +82,32 @@ fi
 echo ""
 
 
+# Schritt 2b: Dotfiles-Repo auf SSH umstellen?
+
+echo -e "${GELB}Dotfiles-Repo auf SSH umstellen${RESET}"
+echo ""
+echo -e "  Soll das geklonte dotfiles-Repo von HTTPS auf SSH umgestellt werden?"
+echo -e "  (Ermöglicht das direkte Mitwirken am Repo per SSH-Authentifizierung)"
+echo ""
+
+while true; do
+    read -p "Repo auf SSH umstellen? [j/n]: " ssh_remote_auswahl < /dev/tty
+    case $ssh_remote_auswahl in
+        [jJ]) CHANGE_TO_SSH=true;  break ;;
+        [nN]) CHANGE_TO_SSH=false; break ;;
+        *) echo "Bitte j oder n eingeben." ;;
+    esac
+done
+
+echo ""
+if [ "$CHANGE_TO_SSH" = true ]; then
+    erfolg "Repo wird nach dem Setup auf SSH umgestellt."
+else
+    info "Repo bleibt auf HTTPS."
+fi
+echo ""
+
+
 # Schritt 3: Git installieren (falls nötig)
 
 if ! command -v git &> /dev/null; then
@@ -135,15 +161,56 @@ ansible-playbook \
 # Schritt 8: SSH-Key generieren (interaktiv, mit eigenem Passphrase)
 
 if [ "$GEN_SSH_KEY" = true ]; then
+    bash "$DOTFILES_DIR/ansible/roles/ssh_config/tasks/generate_ssh_key.sh"
+fi
+
+
+# Schritt 9: Dotfiles-Repo auf SSH umstellen
+
+if [ "$CHANGE_TO_SSH" = true ]; then
     echo ""
-    echo -e "${GELB}SSH-Key generieren${RESET}"
+    echo -e "${GELB}Dotfiles-Repo auf SSH umstellen${RESET}"
     echo ""
-    info "ssh-keygen wird gestartet – du kannst jetzt dein Passphrase eingeben."
-    info "Das Passphrase wird nicht angezeigt und nirgendwo gespeichert."
-    echo ""
-    ssh-keygen -t ed25519 -C "${USER}@$(hostname)"
-    echo ""
-    erfolg "SSH-Key generiert: ~/.ssh/id_ed25519"
+
+    if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
+        echo -e "  ${GELB}[!]${RESET} Kein SSH-Key gefunden – für den Repo-Wechsel wird ein Key benötigt."
+        echo ""
+        while true; do
+            read -p "SSH-Key jetzt generieren? [j/n]: " retry_ssh < /dev/tty
+            case $retry_ssh in
+                [jJ])
+                    bash "$DOTFILES_DIR/ansible/roles/ssh_config/tasks/generate_ssh_key.sh"
+                    break ;;
+                [nN])
+                    info "SSH-Key Generierung übersprungen. Repo bleibt auf HTTPS."
+                    break ;;
+                *) echo "Bitte j oder n eingeben." ;;
+            esac
+        done
+    fi
+
+    if [ -f "$HOME/.ssh/id_ed25519" ]; then
+        echo ""
+        echo -e "  ${GELB}Schritt 1: Dein öffentlicher SSH-Key${RESET}"
+        echo ""
+        cat "$HOME/.ssh/id_ed25519.pub"
+        echo ""
+        echo -e "  ${GELB}Schritt 2: SSH-Key zu GitHub hinzufügen${RESET}"
+        echo -e "  Öffne: https://github.com/settings/keys"
+        echo -e "  Klicke auf 'New SSH key' und füge den obigen Key ein."
+        echo ""
+        read -p "  Drücke [Enter], sobald du den Key zu GitHub hinzugefügt hast..." < /dev/tty
+        echo ""
+        echo -e "  ${GELB}Schritt 3: Remote URL auf SSH umstellen${RESET}"
+        git -C "$DOTFILES_DIR" remote set-url origin git@github.com:JKZA-dev/dotfiles.git
+        echo ""
+        echo -e "  ${GELB}Schritt 4: Remote URL überprüfen${RESET}"
+        git -C "$DOTFILES_DIR" remote -v
+        echo ""
+        erfolg "Repo wurde auf SSH umgestellt!"
+    else
+        info "Kein SSH-Key vorhanden – Repo bleibt auf HTTPS."
+    fi
 fi
 
 

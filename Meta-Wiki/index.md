@@ -1,7 +1,7 @@
 # Meta-Wiki Index
 
 Master index of all wiki pages and their relationships.
-Last updated: 2026-06-21
+Last updated: 2026-06-25
 
 ---
 
@@ -9,14 +9,14 @@ Last updated: 2026-06-21
 
 ### Start here
 - [Overview — Fedora Dotfiles](wiki/overview.md) — what the repo is and how the pieces fit | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
-- [Bootstrap & Installation](wiki/bootstrap-installation.md) — `run-ansible.sh` one-command install flow | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
+- [Bootstrap & Installation](wiki/bootstrap-installation.md) — `run-ansible.sh` one-command install flow incl. SSH-Key & remote-migration steps | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-25
 - [Desktop vs Server Modes](wiki/desktop-vs-server.md) — the `install_mode` switch and capability matrix | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 
 ### Ansible
 - [Ansible Architecture](wiki/ansible-architecture.md) — setup.yml, inventory, role gating, collections | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 - [Role: packages](wiki/role-packages.md) — base + desktop packages, Edge, Flatpak, pip tools | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 - [Role: dotfiles (Stow)](wiki/role-dotfiles-stow.md) — GNU Stow symlinking of zsh/nvim/fastfetch | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
-- [Role: ssh_config](wiki/role-ssh.md) — `~/.ssh` perms, known_hosts, key security model | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
+- [Role: ssh_config](wiki/role-ssh.md) — `~/.ssh` perms, known_hosts, key security model + `generate_ssh_key.sh` & `HowToChangeOrigin.txt` | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-25
 - [Role: kde & backgrounds](wiki/role-kde-desktop.md) — Konsave KDE profile + wallpapers (desktop only) | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 
 ### Application configs (stow packages)

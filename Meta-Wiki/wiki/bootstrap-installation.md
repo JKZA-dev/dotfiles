@@ -1,11 +1,12 @@
 # Bootstrap & Installation
 
 **Summary:** `run-ansible.sh` is the single entry point: it picks Desktop/Server,
-installs Git + Ansible, clones the repo, installs collections, and runs the playbook.
+optionally generates an SSH key and switches the remote to SSH, installs Git + Ansible,
+clones the repo, installs collections, and runs the playbook.
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`run-ansible.sh`, `README.md`, `deps.sh.alt`)
 **Related:** [[overview]], [[ansible-architecture]], [[desktop-vs-server]], [[role-ssh]]
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-25
 
 ---
 
@@ -26,12 +27,18 @@ ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dot
 1. **Prompt for mode** — interactive `1) Desktop` / `2) Server`, reading from
    `/dev/tty` (so it works even when the script is piped from `curl`). Sets
    `INSTALL_MODE` to `desktop` or `server`.
-2. **Install Git** if missing (`sudo dnf install -y git`).
-3. **Install Ansible** if missing (`sudo dnf install -y ansible`).
-4. **Clone the repo** to `$HOME/dotfiles` (skips if already present).
-5. **Install Ansible collections** from `ansible/requirements.yml`
+2. **SSH-Key decision** — checks if `~/.ssh/id_ed25519` already exists (warns before
+   overwriting), then asks `[j/n]` whether to generate a new ed25519 key. Stores the
+   choice in `GEN_SSH_KEY`; the key is not generated yet, just deferred.
+3. **HTTPS → SSH remote decision** — asks whether to switch the cloned dotfiles repo
+   from HTTPS to SSH (for contributing). Stores the choice in `CHANGE_TO_SSH`.
+   Both decisions are collected upfront before any automated steps run.
+4. **Install Git** if missing (`sudo dnf install -y git`).
+5. **Install Ansible** if missing (`sudo dnf install -y ansible`).
+6. **Clone the repo** to `$HOME/dotfiles` (skips if already present).
+7. **Install Ansible collections** from `ansible/requirements.yml`
    (`ansible-galaxy collection install`).
-6. **Run the playbook:**
+8. **Run the playbook:**
    ```bash
    ansible-playbook -i ansible/inventory.ini ansible/setup.yml \
        --extra-vars "install_mode=${INSTALL_MODE}" --ask-become-pass
@@ -39,19 +46,24 @@ ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dot
    The chosen mode is passed through as the `install_mode` extra-var — this is the
    single switch that drives all the desktop-vs-server gating in
    [[ansible-architecture]].
+9. **SSH-Key generation** — if `GEN_SSH_KEY=true`, calls
+   `ansible/roles/ssh_config/tasks/generate_ssh_key.sh` interactively
+   (see [[role-ssh]]).
+10. **HTTPS → SSH migration** — if `CHANGE_TO_SSH=true`:
+    - If no key exists at this point: offers a second chance to generate one via
+      `generate_ssh_key.sh`.
+    - If a key is present: prints the public key (`cat ~/.ssh/id_ed25519.pub`),
+      pauses for the user to add it to GitHub (`github.com/settings/keys`), then
+      executes `git remote set-url origin git@github.com:JKZA-dev/dotfiles.git`
+      and verifies with `git remote -v`.
 
 The script uses colored `info`/`erfolg`/`fehler` helpers and aborts (`exit 1`) on
 any failed step.
 
 ## Post-install manual steps
 
-The script and the SSH role both remind you:
-
-1. Transfer/generate the **SSH private key** (`~/.ssh/id_ed25519`), then
-   `chmod 600 ~/.ssh/id_ed25519` — the private key is intentionally not in the repo
-   ([[role-ssh]]).
-2. **Log out / back in** so ZSH (and on desktop, the KDE profile) takes effect.
-3. (Desktop) The KDE profile apply is prompted during setup ([[role-kde-desktop]]).
+1. **Log out / back in** so ZSH (and on desktop, the KDE profile) takes effect.
+2. (Desktop) The KDE profile apply is prompted during setup ([[role-kde-desktop]]).
 
 ## `deps.sh.alt` — legacy bootstrap
 

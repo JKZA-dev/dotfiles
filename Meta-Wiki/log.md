@@ -19,6 +19,20 @@ Each entry records:
 
 <!-- Entries are prepended (newest first) -->
 
+### 2026-06-25 — SSH-Key & HTTPS→SSH-Remote-Migration in run-ansible.sh
+
+- **Action:** update
+- **Output:** `wiki/bootstrap-installation.md`, `wiki/role-ssh.md`
+- **Notes:**
+  - `run-ansible.sh`: SSH-Key-Generierung und HTTPS→SSH-Umstellung als Entscheidungen
+    upfront gesammelt (Schritte 2 & 2b); SSH-Keygen-Code in neues Hilfsskript
+    ausgelagert; Schritt 8 ruft jetzt `generate_ssh_key.sh` auf; neuer Schritt 9
+    führt die Remote-Umstellung durch inkl. zweiter SSH-Key-Chance und automatischer
+    Ausführung der `execute`-Kommandos aus `HowToChangeOrigin.txt`.
+  - Neues Skript: `ansible/roles/ssh_config/tasks/generate_ssh_key.sh`
+  - `HowToChangeOrigin.txt` bleibt unverändert; die `execute`-Zeilen darin sind jetzt
+    in Schritt 9 des Bootstrap-Scripts umgesetzt.
+
 ### 2026-06-21 — dotfiles repository self-ingest (`raw/2026-06-21-dotfiles-repo-snapshot.md`)
 
 - **Action:** create
