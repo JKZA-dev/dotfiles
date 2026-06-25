@@ -1,4 +1,7 @@
-# Meta-Wiki — Claude Instructions
+# Claude Instructions
+Claude AI will use the Meta-Wiki to use less tokens by using it to look for context and answers regarding this repo.
+
+# Meta-Wiki
 
 This is a personal knowledge wiki built on Andrej Karpathy's LLM wiki pattern.
 The idea: drop raw source documents in, and LLM-assisted ingestion distills them into
