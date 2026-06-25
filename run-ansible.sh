@@ -50,7 +50,39 @@ erfolg "Modus: ${INSTALL_MODE}"
 echo ""
 
 
-# Schritt 2: Git installieren (falls nötig)
+# Schritt 2: SSH-Key Entscheidung
+
+echo -e "${GELB}SSH-Key einrichten${RESET}"
+echo ""
+
+if [ -f "$HOME/.ssh/id_ed25519" ]; then
+    echo -e "  ${GELB}[!]${RESET} Es ist bereits ein SSH-Key vorhanden (~/.ssh/id_ed25519)"
+    echo -e "      Ein neuer Key würde den alten ${ROT}überschreiben${RESET}."
+else
+    echo -e "  Kein SSH-Key gefunden – es kann ein neuer ed25519-Key generiert werden."
+fi
+
+echo ""
+
+while true; do
+    read -p "SSH-Key jetzt generieren? [j/n]: " ssh_auswahl < /dev/tty
+    case $ssh_auswahl in
+        [jJ]) GEN_SSH_KEY=true;  break ;;
+        [nN]) GEN_SSH_KEY=false; break ;;
+        *) echo "Bitte j oder n eingeben." ;;
+    esac
+done
+
+echo ""
+if [ "$GEN_SSH_KEY" = true ]; then
+    erfolg "SSH-Key wird nach dem Setup generiert."
+else
+    info "SSH-Key Generierung übersprungen."
+fi
+echo ""
+
+
+# Schritt 3: Git installieren (falls nötig)
 
 if ! command -v git &> /dev/null; then
     info "Git wird installiert..."
@@ -59,7 +91,7 @@ fi
 erfolg "Git ist bereit"
 
 
-# Schritt 3: Ansible installieren (falls nötig)
+# Schritt 4: Ansible installieren (falls nötig)
 
 if ! command -v ansible &> /dev/null; then
     info "Ansible wird installiert..."
@@ -68,7 +100,7 @@ fi
 erfolg "Ansible ist bereit"
 
 
-# Schritt 4: Dotfiles-Repo klonen (falls nötig)
+# Schritt 5: Dotfiles-Repo klonen (falls nötig)
 
 if [ ! -d "$DOTFILES_DIR" ]; then
     info "Klone dotfiles-Repository..."
@@ -78,7 +110,7 @@ else
 fi
 
 
-# Schritt 5: Ansible Collections installieren
+# Schritt 6: Ansible Collections installieren
 
 info "Installiere Ansible Collections..."
 ansible-galaxy collection install -r "$DOTFILES_DIR/ansible/requirements.yml" \
@@ -86,7 +118,7 @@ ansible-galaxy collection install -r "$DOTFILES_DIR/ansible/requirements.yml" \
 erfolg "Ansible Collections sind bereit"
 
 
-# Schritt 6: Ansible Playbook ausführen
+# Schritt 7: Ansible Playbook ausführen
 # --extra-vars übergibt den gewählten Modus an Ansible
 
 info "Starte Ansible Playbook (Modus: ${INSTALL_MODE})..."
@@ -100,18 +132,32 @@ ansible-playbook \
     || fehler "Playbook fehlgeschlagen! Siehe Ausgabe oben."
 
 
+# Schritt 8: SSH-Key generieren (interaktiv, mit eigenem Passphrase)
+
+if [ "$GEN_SSH_KEY" = true ]; then
+    echo ""
+    echo -e "${GELB}SSH-Key generieren${RESET}"
+    echo ""
+    info "ssh-keygen wird gestartet – du kannst jetzt dein Passphrase eingeben."
+    info "Das Passphrase wird nicht angezeigt und nirgendwo gespeichert."
+    echo ""
+    ssh-keygen -t ed25519 -C "${USER}@$(hostname)"
+    echo ""
+    erfolg "SSH-Key generiert: ~/.ssh/id_ed25519"
+fi
+
+
 # Fertig!
 
 echo ""
 echo -e "${GRUEN}  Setup abgeschlossen!${RESET}"
 echo ""
 echo "  Nächste Schritte:"
-echo "    1. SSH Public + Private Key manuell übertragen + chmod 600 ~/.ssh/id_ed25519"
 
 if [ "$INSTALL_MODE" = "desktop" ]; then
-    echo "    2. Ausloggen/einloggen (damit ZSH + KDE-Profil aktiv wird)"
+    echo "    1. Ausloggen/einloggen (damit ZSH + KDE-Profil aktiv wird)"
 else
-    echo "    2. Ausloggen/einloggen (damit ZSH aktiv wird)"
+    echo "    1. Ausloggen/einloggen (damit ZSH aktiv wird)"
 fi
 
 echo ""
