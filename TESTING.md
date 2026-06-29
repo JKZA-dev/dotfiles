@@ -97,12 +97,18 @@ molecule test -s server
 `molecule test` führt automatisch diese Schritte durch:
 1. **dependency** – Ansible-Galaxy-Abhängigkeiten laden
 2. **create** – Fedora-Container mit Podman erstellen
-3. **prepare** – *(nicht verwendet)*
-4. **converge** – Ansible-Playbook im Container ausführen
+3. **prepare** – `molecule/default/prepare.yml`: python3/python3-libdnf5/sudo
+   installieren und Dotfiles in den Container kopieren (läuft EINMALIG)
+4. **converge** – Ansible-Playbook (`ansible/setup.yml`) im Container ausführen
 5. **idempotency** – Playbook ein zweites Mal ausführen (darf keine Änderungen machen)
 6. **verify** – Verifikations-Playbook ausführen
 7. **cleanup** – *(nicht verwendet)*
 8. **destroy** – Container löschen
+
+> **Hinweis Idempotenz:** Die Container-Vorbereitung steckt bewusst in
+> `prepare.yml` (statt in `converge.yml`), damit der zweite converge-Lauf
+> 0 Änderungen meldet. Die Stow-Rolle erkennt über `--verbose`, ob sie
+> wirklich Symlinks anlegt – nur dann gilt sie als „changed".
 
 ### Einzelne Schritte ausführen
 
@@ -150,30 +156,34 @@ molecule test -s server -- -vvv
 
 ```
 molecule/
-├── default/              # Basis-Konfiguration (Desktop, wird auch standalone verwendet)
+├── default/              # Basis-Szenario (Desktop) – hier liegen die echten Playbooks
 │   ├── molecule.yml      # Container- und Provisioner-Konfiguration
-│   ├── converge.yml      # Ansible-Playbook (richtet Container ein)
+│   ├── prepare.yml       # Container-Bootstrap (python3/libdnf5, Dotfiles kopieren)
+│   ├── converge.yml      # importiert ansible/setup.yml
 │   └── verify.yml        # Verifikations-Playbook (prüft Ergebnisse)
 ├── desktop/              # Desktop-Szenario
-│   ├── molecule.yml      # install_mode: desktop
-│   ├── converge.yml -> ../default/converge.yml  (Symlink)
-│   └── verify.yml -> ../default/verify.yml      (Symlink)
+│   └── molecule.yml      # install_mode: desktop, verweist via "playbooks:" auf ../default
 └── server/               # Server-Szenario
-    ├── molecule.yml      # install_mode: server
-    ├── converge.yml -> ../default/converge.yml  (Symlink)
-    └── verify.yml -> ../default/verify.yml      (Symlink)
+    └── molecule.yml      # install_mode: server,  verweist via "playbooks:" auf ../default
 ```
+
+`desktop` und `server` enthalten KEINE eigenen Playbooks (auch keine Symlinks):
+ihre `molecule.yml` zeigt über den `playbooks:`-Schlüssel auf `../default/`
+(prepare, converge, verify) und unterscheidet sich nur in `install_mode`.
 
 ### Szenario: `desktop`
 
 - Container: `quay.io/fedora/fedora:latest` (privileged)
-- Variable: `install_mode=desktop`
+- Variable: `install_mode=desktop`, `molecule_test=true`
 - Getestete Rollen: packages, zsh, dotfiles, ssh_config, backgrounds
 - Übersprungen: kde (interaktive Pause-Tasks, benötigt KDE-Session)
+- Im Test übersprungene Pakete (über `molecule_test`): kicad, microsoft-edge,
+  Flatpak – das hält die CI schnell und stabil. `gimp` wird als Beleg für den
+  Desktop-Zweig installiert. Auf echten Maschinen wird alles installiert.
 
 **Was wird geprüft:**
 - ✅ Basis-Pakete installiert (zsh, neovim, btop, fastfetch, git, stow)
-- ✅ Desktop-Pakete installiert (gimp, kicad)
+- ✅ Desktop-Paket installiert (gimp)
 - ✅ ZSH ist Standard-Shell
 - ✅ Dotfiles-Symlinks vorhanden (.zshrc, .config/nvim, .config/fastfetch)
 - ✅ SSH-Verzeichnis mit korrekten Berechtigungen (0700)
@@ -207,6 +217,22 @@ Für private Repositories gibt es 2.000 Freiminuten pro Monat (danach kostenpfli
 
 Da `JKZA-dev/dotfiles` ein öffentliches Repository ist, entstehen **keine Kosten**.
 
+### Zwei-Stufen-Aufbau (Lint + Molecule)
+
+Die CI läuft in zwei Stufen, von schnell nach langsam:
+
+1. **`lint`** (Sekunden) – ohne Container:
+   - `yamllint` – YAML-Syntax
+   - `ansible-playbook --syntax-check` – Playbook-Struktur
+   - `ansible-lint` – Ansible-Best-Practices (Profil `min`, siehe `.ansible-lint`)
+   - `shellcheck` – die eigenen Shell-Skripte (`run-ansible.sh`,
+     `generate_ssh_key.sh`)
+2. **`molecule [desktop|server]`** (Minuten) – führt das Playbook real im
+   Fedora-Container aus. Startet nur, wenn `lint` grün ist (`needs: lint`).
+
+So bekommst du die meisten Fehler in Sekunden gemeldet, ohne auf die Container
+zu warten.
+
 ### Wann laufen die Tests?
 
 Die Tests werden automatisch ausgelöst bei:
@@ -214,9 +240,9 @@ Die Tests werden automatisch ausgelöst bei:
 | Ereignis                        | Beschreibung                              |
 |---------------------------------|-------------------------------------------|
 | `push` auf `main`               | Bei jedem Commit auf main                 |
-| `push` auf `develop`            | Bei jedem Commit auf develop              |
+| `push` auf `dev`                | Bei jedem Commit auf dev                  |
 | Pull Request auf `main`         | Bei jedem PR (auch Updates)               |
-| Pull Request auf `develop`      | Bei jedem PR auf develop                  |
+| Pull Request auf `dev`          | Bei jedem PR auf dev                      |
 | Manuell via Actions-Tab         | Jederzeit per Knopfdruck auslösbar        |
 
 ### Tests manuell starten

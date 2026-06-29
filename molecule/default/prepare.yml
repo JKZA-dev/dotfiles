@@ -1,0 +1,30 @@
+---
+# Prepare – Container vorbereiten (läuft EINMALIG vor converge)
+#
+# Bewusst getrennt von converge.yml, damit diese Schritte NICHT beim
+# Idempotenz-Lauf (zweiter converge) erneut ausgeführt werden.
+#
+# 1. python3 + sudo + libdnf5-Bindings installieren.
+#    python3-libdnf5 wird vom ansible.builtin.dnf5-Modul benötigt
+#    (sonst: "No module named 'libdnf5'").
+# 2. Dotfiles in den Container kopieren (kein Git-Clone im Container).
+
+- name: Prepare – Bootstrap und Dotfiles kopieren
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Python3, sudo und libdnf5-Bindings installieren
+      ansible.builtin.raw: dnf install -y python3 python3-libdnf5 sudo
+      changed_when: false
+
+    - name: Dotfiles in Container kopieren
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /root/dotfiles/
+        mode: preserve
+      loop:
+        - "{{ playbook_dir }}/../../zsh"
+        - "{{ playbook_dir }}/../../nvim"
+        - "{{ playbook_dir }}/../../fastfetch"
+        - "{{ playbook_dir }}/../../ssh"
+        - "{{ playbook_dir }}/../../Backgrounds"

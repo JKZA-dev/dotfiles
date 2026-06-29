@@ -1,7 +1,7 @@
 # Meta-Wiki Index
 
 Master index of all wiki pages and their relationships.
-Last updated: 2026-06-25
+Last updated: 2026-06-29
 
 ---
 
@@ -13,8 +13,8 @@ Last updated: 2026-06-25
 - [Desktop vs Server Modes](wiki/desktop-vs-server.md) — the `install_mode` switch and capability matrix | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 
 ### Ansible
-- [Ansible Architecture](wiki/ansible-architecture.md) — setup.yml, inventory, role gating, collections | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
-- [Role: packages](wiki/role-packages.md) — base + desktop packages, Edge, Flatpak, pip tools | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
+- [Ansible Architecture](wiki/ansible-architecture.md) — setup.yml, inventory, role gating, collections | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-29
+- [Role: packages](wiki/role-packages.md) — base + desktop packages, Edge, Flatpak app list, pip tools | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-29
 - [Role: dotfiles (Stow)](wiki/role-dotfiles-stow.md) — GNU Stow symlinking of zsh/nvim/fastfetch | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 - [Role: ssh_config](wiki/role-ssh.md) — `~/.ssh` perms, known_hosts, key security model + `generate_ssh_key.sh` & `HowToChangeOrigin.txt` | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-25
 - [Role: kde & backgrounds](wiki/role-kde-desktop.md) — Konsave KDE profile + wallpapers (desktop only) | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
@@ -25,8 +25,8 @@ Last updated: 2026-06-25
 - [Fastfetch Configuration](wiki/fastfetch-configuration.md) — module list + custom OS_Age module | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 
 ### Quality
-- [Testing with Molecule](wiki/testing-molecule.md) — Podman scenarios, verify checks, failure modes | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
-- [CI — GitHub Actions](wiki/ci-github-actions.md) — parallel desktop/server matrix workflow | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
+- [Testing with Molecule](wiki/testing-molecule.md) — Podman scenarios, prepare stage, verify checks, failure modes | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-29
+- [CI — GitHub Actions](wiki/ci-github-actions.md) — two-tier lint + desktop/server molecule matrix | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-29
 
 ---
 
@@ -52,9 +52,9 @@ Config cross-links:
 - `zsh-configuration` → `role-kde-desktop` (PATH exposes pip `--user` konsave)
 
 Quality:
-- `testing-molecule` → `ansible-architecture` (`molecule_test` flag gates roles)
+- `testing-molecule` → `ansible-architecture` (`molecule_test` flag gates kde + heavy packages)
 - `testing-molecule` verifies → `role-packages`, `role-dotfiles-stow`, `role-ssh`, `desktop-vs-server`
-- `ci-github-actions` → `testing-molecule` (CI runs Molecule scenarios)
+- `ci-github-actions` → `testing-molecule` (CI's `lint` job gates the Molecule matrix)
 
 ---
 
@@ -65,3 +65,4 @@ Quality:
 | Total pages | 13 |
 | Total sources | 1 |
 | Last ingest | 2026-06-21 |
+| Last update | 2026-06-29 |

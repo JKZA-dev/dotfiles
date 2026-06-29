@@ -17,4 +17,5 @@
   ansible.builtin.copy:
     src: "{{ dotfiles_dir }}/ssh/.ssh/known_hosts"
     dest: "{{ ansible_env.HOME }}/.ssh/known_hosts"
+    remote_src: true   # Quelle liegt auf dem Zielsystem (geklontes Repo / Container)
     mode: "0644"

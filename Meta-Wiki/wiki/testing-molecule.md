@@ -27,8 +27,16 @@ Plus Python 3.10+ and Podman. `pip install -r requirements.txt` (venv recommende
 
 ## Test cycle
 
-`molecule test` runs: dependency → create → (prepare unused) → converge →
+`molecule test` runs: dependency → create → **prepare** → converge →
 **idempotency** (second converge must report 0 changed) → verify → destroy.
+`prepare` (`molecule/default/prepare.yml`) installs `python3`,
+`python3-libdnf5` (needed by the `dnf5` module) and `sudo`, then copies the
+dotfiles into the container — kept out of `converge` so the idempotency re-run
+stays at 0 changed.
+
+CI is two-tier: a fast **lint** job (yamllint + `ansible-playbook
+--syntax-check` + ansible-lint + shellcheck on the shell scripts) runs first,
+then the **molecule** matrix (`desktop`, `server`) runs via `needs: lint`.
 
 Common commands:
 ```bash
@@ -60,14 +68,18 @@ the default playbooks via the `playbooks:` provisioner key.)
 - **driver:** podman; **platform:** `quay.io/fedora/fedora:latest`, privileged,
   `SYS_ADMIN` capability.
 - **group_vars/all:** `install_mode: desktop|server` **and `molecule_test: true`** —
-  the latter is what makes [[ansible-architecture]] skip the `kde` and `backgrounds`
-  roles (no Plasma session / interactive pauses in a container).
+  the latter makes [[ansible-architecture]] skip the `kde` role (interactive
+  `pause`/konsave, not container-safe) and the heavy/flaky desktop packages
+  (kicad, microsoft-edge, flatpak). The `backgrounds` role **does** run under
+  molecule (it only copies images). `gimp` is the representative desktop package
+  installed in the container.
 
-### converge.yml — container prep
+### prepare.yml — container prep
 
-Before importing `ansible/setup.yml`, a prep play installs `python3` + `sudo` via
+`molecule/default/prepare.yml` installs `python3`, `python3-libdnf5`, `sudo` via
 `raw`, and copies the `zsh`, `nvim`, `fastfetch`, `ssh`, `Backgrounds` folders into
-`/root/dotfiles/` (the container has no git clone).
+`/root/dotfiles/` (the container has no git clone). `converge.yml` then only
+imports `ansible/setup.yml`.
 
 ## What verify.yml asserts
 
@@ -77,7 +89,8 @@ Runs as root in the container. Checks:
 3. Dotfiles symlinks exist **and are symlinks**: `.zshrc`, `.config/nvim`,
    `.config/fastfetch` ([[role-dotfiles-stow]]).
 4. `~/.ssh` exists, dir, mode `0700`; `known_hosts` present ([[role-ssh]]).
-5. **Desktop only:** `gimp` + `kicad` installed, `~/Pictures/Hacknet` exists.
+5. **Desktop only:** `gimp` installed (kicad is skipped under `molecule_test`),
+   `~/Pictures/Hacknet` exists.
 6. **Server only:** `gimp`, `kicad`, `plasma-browser-integration` **not** installed.
 
 ## Common failure modes (from TESTING.md)

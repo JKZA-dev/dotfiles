@@ -18,11 +18,11 @@ on:
   push:
     branches:
       - main
-      - develop
+      - dev
   pull_request:
     branches:
       - main
-      - develop
+      - dev
   workflow_dispatch:
     inputs:
       scenario:
@@ -31,8 +31,45 @@ on:
         default: ""
 
 jobs:
+  # ================================================================== #
+  # Schnelle Prüfung (Sekunden): Syntax/Lint für YAML, Ansible, Shell. #
+  # Fängt die meisten Fehler ab, bevor die langsamen Container starten.#
+  # ================================================================== #
+  lint:
+    name: "Lint & Syntax"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python 3.12 einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Lint-Werkzeuge installieren
+        run: |
+          pip install ansible-core ansible-lint yamllint
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: yamllint
+        run: yamllint .
+
+      - name: Ansible Syntax-Check
+        run: ansible-playbook --syntax-check -i ansible/inventory.ini ansible/setup.yml
+
+      - name: ansible-lint
+        run: ansible-lint
+
+      - name: shellcheck (eigene Skripte)
+        run: shellcheck run-ansible.sh ansible/roles/ssh_config/tasks/generate_ssh_key.sh
+
   molecule:
     name: "Molecule [${{ matrix.scenario }}]"
+    needs: lint   # erst die langsamen Container starten, wenn Lint grün ist
     runs-on: ubuntu-latest
     permissions:
       contents: read

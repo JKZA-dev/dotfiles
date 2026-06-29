@@ -19,6 +19,29 @@ Each entry records:
 
 <!-- Entries are prepended (newest first) -->
 
+### 2026-06-29 — Test-Suite repariert (Molecule + Lint) & Flatpak-Apps
+
+- **Action:** update
+- **Output:** `wiki/testing-molecule.md`, `wiki/ci-github-actions.md`,
+  `wiki/role-packages.md`, `wiki/ansible-architecture.md`
+- **Notes:**
+  - **Molecule-Fixes:** Bootstrap (python3 + **python3-libdnf5** + sudo, Dotfiles
+    kopieren) in neues `molecule/default/prepare.yml` ausgelagert → converge bleibt
+    idempotent. Stow nutzt jetzt `--verbose` + `changed_when` statt `--restow` +
+    `changed_when: true`. `ssh_config`-Copy bekam `remote_src: true`. `backgrounds`
+    läuft jetzt auch im Container (nur `kde` bleibt über `molecule_test` ausgeschlossen).
+  - **packages-Rolle:** Desktop-Pakete in „Basis" (`gimp`, auch im Test) und „schwer"
+    (`kicad` u.a., via `not molecule_test`) gesplittet; Edge + Flatpak ebenso gegated;
+    pip nutzt `--break-system-packages` (PEP 668).
+  - **Flatpak-App-Liste** ersetzt den kaputten `com.example.App`-Platzhalter:
+    `org.prismlauncher.PrismLauncher`, `im.riot.Riot`, `com.github.tchx84.Flatseal`,
+    `com.ktechpit.whatsie`, `com.discordapp.Discord`.
+  - **CI:** Zwei-Stufen-Aufbau — schneller `lint`-Job (yamllint, ansible-lint,
+    `--syntax-check`, shellcheck) gated die `molecule`-Matrix (`needs: lint`). Trigger
+    von `develop` auf `dev` korrigiert. Neue Configs `.yamllint`, `.ansible-lint`.
+  - Behebt die zuvor in der Snapshot-Ingest notierten Punkte (Flatpak-Platzhalter;
+    veraltetes Symlink-Layout in TESTING.md).
+
 ### 2026-06-25 — SSH-Key & HTTPS→SSH-Remote-Migration in run-ansible.sh
 
 - **Action:** update

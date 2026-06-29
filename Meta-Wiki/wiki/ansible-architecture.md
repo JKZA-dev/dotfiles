@@ -5,7 +5,7 @@ the `install_mode` variable plus a `molecule_test` flag gate which roles run.
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`ansible/setup.yml`, `inventory.ini`, `requirements.yml`)
 **Related:** [[overview]], [[bootstrap-installation]], [[desktop-vs-server]], [[role-packages]], [[role-dotfiles-stow]], [[role-ssh]], [[role-kde-desktop]], [[zsh-configuration]]
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-29
 
 ---
 
@@ -41,16 +41,18 @@ roles:
   - { role: dotfiles,    tags: dotfiles }    # both modes
   - { role: ssh_config,  tags: ssh }         # both modes
   - { role: backgrounds, tags: backgrounds,
-      when: install_mode == 'desktop' and not molecule_test | default(false) }
+      when: install_mode == 'desktop' }
   - { role: kde,         tags: kde,
       when: install_mode == 'desktop' and not molecule_test | default(false) }
 ```
 
-Two gating conditions:
+Gating conditions:
 - **`install_mode == 'desktop'`** — backgrounds and KDE only on desktops.
-- **`not molecule_test`** — these two roles are *also* skipped inside containers,
-  because KDE uses interactive `pause` tasks and needs a real Plasma session
-  ([[testing-molecule]] sets `molecule_test: true`).
+- **`not molecule_test`** — only the **kde** role is *also* skipped inside containers,
+  because it uses interactive `pause` tasks and needs a real Plasma session
+  ([[testing-molecule]] sets `molecule_test: true`). The **backgrounds** role *does*
+  run under molecule (it only copies images), and inside [[role-packages]] the same
+  flag skips the heavy/flaky desktop packages (kicad, Microsoft Edge, Flatpak).
 
 ### Tags
 

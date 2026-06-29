@@ -132,16 +132,17 @@
     # ------------------------------------------------------------------ #
     # 5. Desktop-spezifische Checks                                       #
     # ------------------------------------------------------------------ #
-    - name: Desktop-Pakete sind installiert (nur Desktop-Modus)
+    # Im Container wird nur das leichte Desktop-Paket gimp installiert
+    # (kicad/edge/flatpak sind im Test übersprungen). gimp belegt, dass
+    # der Desktop-Zweig wirklich GUI-Pakete installiert.
+    - name: Desktop-Paket ist installiert (nur Desktop-Modus)
       ansible.builtin.assert:
         that:
           - "'gimp' in ansible_facts.packages"
-          - "'kicad' in ansible_facts.packages"
         fail_msg: >
-          Desktop-Pakete fehlen:
-          gimp={{ 'gimp' in ansible_facts.packages }},
-          kicad={{ 'kicad' in ansible_facts.packages }}
-        success_msg: "Desktop-Pakete (gimp, kicad) sind installiert"
+          Desktop-Paket fehlt:
+          gimp={{ 'gimp' in ansible_facts.packages }}
+        success_msg: "Desktop-Paket (gimp) ist installiert"
       when: install_mode == 'desktop'
 
     - name: Backgrounds-Verzeichnis prüfen (nur Desktop-Modus)

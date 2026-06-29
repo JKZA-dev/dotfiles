@@ -1,11 +1,12 @@
 # CI — GitHub Actions
 
-**Summary:** A GitHub Actions workflow runs the `desktop` and `server` Molecule
-scenarios in parallel on push/PR to main/develop and on manual dispatch.
+**Summary:** A two-tier GitHub Actions workflow: a fast `lint` job (yamllint,
+ansible-lint, syntax-check, shellcheck) gates a `molecule` matrix that runs the
+`desktop` and `server` scenarios in parallel, on push/PR to main/dev and manual dispatch.
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`.github/workflows/test-ansible.yml`, `.env.example`, `TESTING.md`)
 **Related:** [[testing-molecule]], [[overview]]
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-29
 
 ---
 
@@ -13,28 +14,35 @@ scenarios in parallel on push/PR to main/develop and on manual dispatch.
 
 ### Triggers
 
-- `push` to `main` or `develop`
-- `pull_request` to `main` or `develop`
+- `push` to `main` or `dev`
+- `pull_request` to `main` or `dev`
 - `workflow_dispatch` (manual; optional `scenario` input)
 
-### Job matrix
+### Two tiers
 
-One job `molecule` with a matrix over `scenario: [desktop, server]`, `fail-fast: false`
-so both run to completion even if one fails. Runs on `ubuntu-latest`, `contents: read`.
+**1. `lint` (seconds, no containers)** — runs on `ubuntu-latest`:
+1. Checkout + Python 3.12.
+2. `pip install ansible-core ansible-lint yamllint` and
+   `ansible-galaxy collection install -r ansible/requirements.yml`.
+3. `yamllint .` (config `.yamllint`, `extends: relaxed`).
+4. `ansible-playbook --syntax-check -i ansible/inventory.ini ansible/setup.yml`.
+5. `ansible-lint` (config `.ansible-lint`, `profile: min`).
+6. `shellcheck run-ansible.sh ansible/roles/ssh_config/tasks/generate_ssh_key.sh`
+   (shellcheck is preinstalled on GitHub runners).
 
-### Steps
-
-1. Checkout (`actions/checkout@v4`).
-2. Python 3.12 with pip cache (`actions/setup-python@v5`).
-3. Install Podman via apt; print `podman version`.
-4. `pip install -r requirements.txt` ([[testing-molecule]]).
-5. `molecule test -s ${{ matrix.scenario }}` (env: `PY_COLORS`, `ANSIBLE_FORCE_COLOR`,
-   `MOLECULE_DRIVER_NAME=podman`).
-6. **On failure:** upload `~/.cache/molecule/` + `/tmp/molecule/` as an artifact
+**2. `molecule` (minutes)** — `needs: lint`, so the slow containers only start once
+lint is green. Matrix over `scenario: [desktop, server]`, `fail-fast: false`. Steps:
+1. Checkout + Python 3.12 (pip cache).
+2. Install Podman via apt; print `podman version`.
+3. `pip install -r requirements.txt` ([[testing-molecule]]).
+4. `molecule test -s ${{ matrix.scenario }}` (env `PY_COLORS`, `ANSIBLE_FORCE_COLOR`,
+   `MOLECULE_DRIVER_NAME=podman`). This includes the `prepare` stage that installs
+   `python3-libdnf5` and copies dotfiles into the container.
+5. **On failure:** upload `~/.cache/molecule/` + `/tmp/molecule/` as artifact
    `molecule-logs-<scenario>-<run_id>`, retained 30 days.
-7. **Always:** `molecule destroy -s <scenario>` cleanup.
+6. **Always:** `molecule destroy -s <scenario>` cleanup.
 
-Because the two scenarios run in parallel, total wall-clock is roughly halved.
+The two scenarios run in parallel, so molecule wall-clock is roughly halved.
 
 ## Cost
 

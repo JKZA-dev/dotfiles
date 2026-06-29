@@ -28,27 +28,44 @@
     state: present
 
 
-# Desktop-Pakete – nur im Desktop-Modus (GUI-Programme, KDE-Sachen)
+# Desktop-Pakete (leicht) – nur im Desktop-Modus.
+# gimp dient auch im Molecule-Test als Beleg, dass der Desktop-Zweig
+# wirklich GUI-Pakete installiert (siehe verify.yml).
 
-- name: "Desktop-Pakete installieren"
+- name: "Desktop-Pakete installieren (Basis)"
   become: true
   ansible.builtin.dnf5:
     name:
       - gimp
-      - kicad
-      - plasma-browser-integration
-      - applet-window-buttons
     state: present
   when: install_mode == 'desktop'
 
 
-# Microsoft Edge – nur Desktop
+# Desktop-Pakete (schwer) – im Container-Test übersprungen, damit die CI
+# schnell und stabil bleibt. Auf echten Maschinen werden sie installiert.
+
+- name: "Desktop-Pakete installieren (schwer)"
+  become: true
+  ansible.builtin.dnf5:
+    name:
+      - kicad
+      - plasma-browser-integration
+      - applet-window-buttons
+    state: present
+  when:
+    - install_mode == 'desktop'
+    - not molecule_test | default(false)
+
+
+# Microsoft Edge – nur Desktop (nicht im Container-Test: externes Repo)
 
 - name: "Prüfen ob Microsoft Edge Repository existiert"
   ansible.builtin.stat:
     path: /etc/yum.repos.d/microsoft-edge.repo
   register: edge_repo
-  when: install_mode == 'desktop'
+  when:
+    - install_mode == 'desktop'
+    - not molecule_test | default(false)
 
 - name: "Microsoft Edge Repository hinzufügen"
   become: true
@@ -61,6 +78,7 @@
     enabled: true
   when:
     - install_mode == 'desktop'
+    - not molecule_test | default(false)
     - not (edge_repo.stat.exists | default(false))
 
 - name: "Microsoft Edge installieren"
@@ -68,18 +86,22 @@
   ansible.builtin.dnf5:
     name: microsoft-edge-stable
     state: present
-  when: install_mode == 'desktop'
+  when:
+    - install_mode == 'desktop'
+    - not molecule_test | default(false)
 
 
 # speedtest-cli per pip (immer)
+# --break-system-packages: Fedoras System-Python ist "externally managed"
+# (PEP 668), pip verweigert sonst die Installation.
 
 - name: "speedtest-cli per pip installieren"
   ansible.builtin.pip:
     name: speedtest-cli
-    extra_args: --user
+    extra_args: --user --break-system-packages
 
 
-# Flatpak – nur Desktop
+# Flatpak – nur Desktop (nicht im Container-Test: benötigt flatpak-Binary)
 
 - name: "Flathub Remote hinzufügen"
   become: true
@@ -88,13 +110,21 @@
     state: present
     flatpakrepo_url: "https://dl.flathub.org/repo/flathub.flatpakrepo"
     method: system
-  when: install_mode == 'desktop'
+  when:
+    - install_mode == 'desktop'
+    - not molecule_test | default(false)
 
 - name: "Desktop-Flatpaks installieren"
   become: true
   community.general.flatpak:
     name:
-      - com.example.App
+      - org.prismlauncher.PrismLauncher   # Prism Minecraft Launcher
+      - im.riot.Riot                       # Element (Matrix-Client)
+      - com.github.tchx84.Flatseal         # Flatseal (Flatpak-Berechtigungen)
+      - com.ktechpit.whatsie                # Whatsie (WhatsApp-Client)
+      - com.discordapp.Discord             # Discord
     state: present
     method: system
-  when: install_mode == 'desktop'
+  when:
+    - install_mode == 'desktop'
+    - not molecule_test | default(false)

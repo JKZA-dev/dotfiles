@@ -1,31 +1,11 @@
 ---
 # Converge – Führt das Ansible-Playbook aus
 #
-# Diese Datei importiert einfach das Haupt-Playbook (ansible/setup.yml).
-# Die Modi (Desktop vs Server) werden durch install_mode definiert,
-# die in molecule.yml gesetzt wird.
+# Importiert das Haupt-Playbook (ansible/setup.yml). Die Modi (Desktop vs
+# Server) werden über install_mode gesteuert, das in molecule.yml gesetzt wird.
 #
-# Vorbereitung: Dotfiles in den Container kopieren
-- name: Prepare – Bootstrap und Dotfiles kopieren
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: Python3 und sudo installieren (für Ansible)
-      ansible.builtin.raw: dnf install -y python3 sudo
-      changed_when: true
-
-    - name: Dotfiles in Container kopieren
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: /root/dotfiles/
-        mode: preserve
-      loop:
-        - "{{ playbook_dir }}/../../zsh"
-        - "{{ playbook_dir }}/../../nvim"
-        - "{{ playbook_dir }}/../../fastfetch"
-        - "{{ playbook_dir }}/../../ssh"
-        - "{{ playbook_dir }}/../../Backgrounds"
-
-# Haupt-Setup: Importiere das echte Ansible-Playbook
+# Die Container-Vorbereitung (python3/libdnf5/sudo, Dotfiles kopieren) passiert
+# in prepare.yml, damit converge idempotent bleibt (Molecule führt converge ein
+# zweites Mal aus und erwartet 0 Änderungen).
 - name: Converge – Import ansible/setup.yml
   ansible.builtin.import_playbook: ../../ansible/setup.yml

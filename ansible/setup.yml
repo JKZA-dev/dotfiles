@@ -24,6 +24,9 @@
     - { role: dotfiles,    tags: dotfiles }
     - { role: ssh_config,  tags: ssh }
 
-    # Nur Desktop (aber NICHT in Molecule/Container-Tests)
-    - { role: backgrounds, tags: backgrounds, when: install_mode == 'desktop' and not molecule_test | default(false) }
+    # Nur Desktop – backgrounds ist container-tauglich (kopiert nur Bilder)
+    - { role: backgrounds, tags: backgrounds, when: install_mode == 'desktop' }
+
+    # Nur Desktop, NICHT in Molecule/Container-Tests
+    # (kde nutzt interaktives "pause" + konsave, nicht container-tauglich)
     - { role: kde,         tags: kde,         when: install_mode == 'desktop' and not molecule_test | default(false) }
