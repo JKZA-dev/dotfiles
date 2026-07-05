@@ -55,13 +55,20 @@
 # Stow für jedes Paket ausführen.
 # Jedes Paket entspricht einem Ordner im dotfiles-Repo der die
 # Verzeichnisstruktur ab ~ nachbildet.
+#
+# "--verbose" lässt Stow die erstellten/entfernten Symlinks ausgeben.
+# Daran erkennen wir, ob sich wirklich etwas geändert hat (Idempotenz):
+# Sind die Links bereits korrekt, gibt Stow nichts aus -> changed=false.
+# (Kein "--restow", da dieses immer unlinkt+relinkt und so jedes Mal
+#  "geändert" melden würde.)
 
 - name: "Dotfiles per Stow verlinken: {{ item }}"
   ansible.builtin.command:
-    cmd: "stow --restow --target={{ ansible_env.HOME }} {{ item }}"
+    cmd: "stow --verbose --target={{ ansible_env.HOME }} {{ item }}"
     chdir: "{{ dotfiles_dir }}"
   loop:
     - zsh         # .zshrc + .oh-my-zsh/custom/*
     - nvim        # .config/nvim/
     - fastfetch   # .config/fastfetch/
-  changed_when: true
+  register: stow_result
+  changed_when: "'LINK:' in stow_result.stderr or 'UNLINK:' in stow_result.stderr"

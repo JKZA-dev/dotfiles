@@ -1,0 +1,23 @@
+# How to change the Git repo origin to ssh
+
+Expected: You already have an SSH Key created on this device
+
+1. Copy your public SSH Key
+copy the following content of following file: ~/.ssh/id_ed25519.pub
+
+'execute cat ~/.ssh/id_ed25519.pub'
+
+2. Add your SSH key to your GitHub Account
+Enter 'https://github.com/settings/keys' 
+Add new SSH key
+
+3. Change remote URL to SSH
+'git remote set-url origin git@github.com:JKZA-dev/dotfiles.git'
+
+4. Enter Passcode of your Key
+
+5. Verify your remote URL has been changed 
+
+'execute git remote -v'
+
+

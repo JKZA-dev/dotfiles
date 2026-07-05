@@ -37,6 +37,7 @@ provisioner:
         install_mode: server
         molecule_test: true
   playbooks:
+    prepare: ../default/prepare.yml
     converge: ../default/converge.yml
     verify: ../default/verify.yml
   env:
