@@ -154,5 +154,5 @@
     method: system
   when:
     - install_mode == 'desktop'
-    - game_ready | default(false)
+    - (game_ready | default(false)) | bool
     - not molecule_test | default(false)
