@@ -16,6 +16,7 @@
     omz_dir: "{{ ansible_env.HOME }}/.oh-my-zsh"
     local_user: "{{ ansible_env.USER }}"
     install_mode: "desktop"   # Standard falls nicht angegeben
+    game_ready: false         # Standard falls nicht angegeben (Steam, Prism Launcher)
 
   roles:
     # Gemeinsam (Desktop + Server)

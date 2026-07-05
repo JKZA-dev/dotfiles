@@ -50,6 +50,35 @@ erfolg "Modus: ${INSTALL_MODE}"
 echo ""
 
 
+# Schritt 1b: Gaming-Ready? (nur im Desktop-Modus)
+
+GAME_READY=false
+
+if [ "$INSTALL_MODE" = "desktop" ]; then
+    echo -e "${GELB}Gaming-Ready einrichten?${RESET}"
+    echo ""
+    echo -e "  Installiert zusätzlich Steam (Paket) und Prism Launcher (Flatpak)."
+    echo ""
+
+    while true; do
+        read -p "Gaming-Pakete installieren? [j/n]: " gaming_auswahl < /dev/tty
+        case $gaming_auswahl in
+            [jJ]) GAME_READY=true;  break ;;
+            [nN]) GAME_READY=false; break ;;
+            *) echo "Bitte j oder n eingeben." ;;
+        esac
+    done
+
+    echo ""
+    if [ "$GAME_READY" = true ]; then
+        erfolg "Gaming-Pakete werden installiert (Steam, Prism Launcher)."
+    else
+        info "Gaming-Pakete werden übersprungen."
+    fi
+    echo ""
+fi
+
+
 # Schritt 2: SSH-Key Entscheidung
 
 echo -e "${GELB}SSH-Key einrichten${RESET}"
@@ -153,7 +182,7 @@ echo ""
 ansible-playbook \
     -i "$DOTFILES_DIR/ansible/inventory.ini" \
     "$DOTFILES_DIR/ansible/setup.yml" \
-    --extra-vars "install_mode=${INSTALL_MODE}" \
+    --extra-vars "install_mode=${INSTALL_MODE} game_ready=${GAME_READY}" \
     --ask-become-pass \
     || fehler "Playbook fehlgeschlagen! Siehe Ausgabe oben."
 

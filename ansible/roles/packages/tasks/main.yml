@@ -57,6 +57,20 @@
     - not molecule_test | default(false)
 
 
+# Gaming-Pakete – nur Desktop + Gaming-Ready ausgewählt (Steam)
+
+- name: "Gaming-Pakete installieren (Steam)"
+  become: true
+  ansible.builtin.dnf5:
+    name:
+      - Steam
+    state: present
+  when:
+    - install_mode == 'desktop'
+    - game_ready | default(false)
+    - not molecule_test | default(false)
+
+
 # Microsoft Edge – nur Desktop (nicht im Container-Test: externes Repo)
 
 - name: "Prüfen ob Microsoft Edge Repository existiert"
@@ -118,7 +132,6 @@
   become: true
   community.general.flatpak:
     name:
-      - org.prismlauncher.PrismLauncher   # Prism Minecraft Launcher
       - im.riot.Riot                       # Element (Matrix-Client)
       - com.github.tchx84.Flatseal         # Flatseal (Flatpak-Berechtigungen)
       - com.ktechpit.whatsie                # Whatsie (WhatsApp-Client)
@@ -127,4 +140,19 @@
     method: system
   when:
     - install_mode == 'desktop'
+    - not molecule_test | default(false)
+
+
+# Gaming-Flatpaks – nur Desktop + Gaming-Ready ausgewählt (Prism Launcher)
+
+- name: "Gaming-Flatpaks installieren (Prism Launcher)"
+  become: true
+  community.general.flatpak:
+    name:
+      - org.prismlauncher.PrismLauncher   # Prism Minecraft Launcher
+    state: present
+    method: system
+  when:
+    - install_mode == 'desktop'
+    - game_ready | default(false)
     - not molecule_test | default(false)
