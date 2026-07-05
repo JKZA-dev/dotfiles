@@ -25,6 +25,7 @@
       - lolcat
       - yt-dlp
       - Tmux
+      - jq
     state: present
 
 
