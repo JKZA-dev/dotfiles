@@ -1,4 +1,4 @@
-# How to change the Git repo origin to shh
+# How to change the Git repo origin to ssh
 
 Expected: You already have an SSH Key created on this device
 
