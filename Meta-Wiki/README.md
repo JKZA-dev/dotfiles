@@ -17,7 +17,7 @@ Meta-Wiki/
 ├── wiki/         # Processed knowledge pages (one .md file per concept/topic)
 ├── index.md      # Master index: all pages, summaries, relationships, stats
 ├── log.md        # Ingest log: every operation recorded chronologically
-└── claude.md     # This file
+└── README.md     # This file
 ```
 
 ---
