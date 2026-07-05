@@ -49,8 +49,8 @@ come from [[role-packages]].)
 ## Startup banner (`custom/startupcode.zsh`)
 
 On every shell start it prints the ZSH version, runs `fastfetch --pipe false`, `cd`s
-home, then prints a German greeting that includes the contents of
-`custom/Device.txt` (currently `Dell XPS 15 9570`) — i.e. "you are on your <device>".
+home, then prints a German greeting that includes the hardware model from
+`hostnamectl` (parsed via `jq` if available; otherwise falls back to `custom/Device.txt`).
 Ends with a "have a productive day" line.
 
-> To adapt for a new machine, edit `custom/Device.txt`.
+> To adapt for a new machine, either edit `custom/Device.txt` (fallback) or rely on `hostnamectl`.
