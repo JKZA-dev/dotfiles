@@ -5,7 +5,7 @@ GUI packages, wallpapers, and the KDE profile are installed on top of the shared
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`README.md`, `ansible/setup.yml`, `roles/packages`)
 **Related:** [[overview]], [[ansible-architecture]], [[bootstrap-installation]], [[role-packages]], [[role-kde-desktop]]
-**Last updated:** 2026-06-21
+**Last updated:** 2026-07-13
 
 ---
 
@@ -30,6 +30,14 @@ GUI packages, wallpapers, and the KDE profile are installed on top of the shared
   carry `when: install_mode == 'desktop'`.
 - **Task-level gating** ([[role-packages]]): desktop packages, Microsoft Edge repo,
   and Flatpak tasks all carry `when: install_mode == 'desktop'`.
+
+## Gaming-Ready — an orthogonal opt-in
+
+Independent of `install_mode`, [[bootstrap-installation]] additionally asks
+desktop installs whether to enable **Gaming-Ready** (`game_ready` var, default
+`false`), which installs Steam + Prism Launcher on top of the normal desktop set.
+It has no server-mode equivalent — the question is skipped entirely outside
+desktop mode. See [[role-packages]].
 
 ## What "server" deliberately omits
 

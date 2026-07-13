@@ -6,7 +6,7 @@ The heavy/flaky desktop bits are skipped under `molecule_test` to keep CI fast.
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`ansible/roles/packages/tasks/main.yml`)
 **Related:** [[ansible-architecture]], [[desktop-vs-server]], [[role-kde-desktop]], [[testing-molecule]]
-**Last updated:** 2026-06-29
+**Last updated:** 2026-07-13
 
 ---
 
@@ -17,7 +17,7 @@ Via `ansible.builtin.dnf5` with `state: present`:
 ```
 zsh  git  stow  curl  zip  btop  fastfetch  neovim
 python3-pip  python3-packaging  ninja-build
-cmatrix  lolcat  yt-dlp  Tmux
+cmatrix  lolcat  yt-dlp  Tmux  jq
 ```
 
 Notes:
@@ -25,6 +25,7 @@ Notes:
 - `cmatrix` + `lolcat` back the joke aliases in [[zsh-configuration]].
 - `python3-pip` / `python3-packaging` are needed for the `pip`-installed tools below
   and for `dnf5` Python bindings.
+- `jq` parses the `hostnamectl` output used by the startup banner ([[zsh-configuration]]).
 
 ## Desktop packages (`install_mode == 'desktop'`)
 
@@ -34,6 +35,18 @@ Split into two dnf5 tasks:
   desktop branch installs something ([[testing-molecule]] asserts it).
 - **Heavy (skipped under `molecule_test`):** `kicad`, `plasma-browser-integration`,
   `applet-window-buttons`.
+
+## Gaming-Ready packages (`install_mode == 'desktop'` + `game_ready`)
+
+Opt-in add-on on top of desktop mode, chosen interactively by
+[[bootstrap-installation]] (Schritt 1b) and passed through as the `game_ready`
+extra-var. Both tasks are gated `(game_ready | default(false)) | bool` (the
+explicit `| bool` cast avoids Ansible's "must have a boolean result" error on the
+string value coming through `--extra-vars`) and `not molecule_test`:
+
+- **Steam** — `ansible.builtin.dnf5`.
+- **Prism Launcher** (`org.prismlauncher.PrismLauncher`) — Flatpak, installed
+  separately from the regular desktop Flatpak list below.
 
 ## Microsoft Edge (desktop only, not in CI)
 
@@ -56,14 +69,14 @@ installs desktop flatpaks (`community.general.flatpak`), gated `not molecule_tes
 (the module needs the `flatpak` binary). Current app list:
 
 ```
-org.prismlauncher.PrismLauncher   # Prism Minecraft Launcher
 im.riot.Riot                      # Element (Matrix client)
 com.github.tchx84.Flatseal        # Flatseal (Flatpak permissions)
 com.ktechpit.whatsie              # Whatsie (WhatsApp client)
 com.discordapp.Discord            # Discord
 ```
 
-(The old `com.example.App` placeholder — which broke every desktop run — is gone.)
+(The old `com.example.App` placeholder — which broke every desktop run — is gone.
+Prism Launcher moved out of this list into the Gaming-Ready-gated task above.)
 
 ## Idempotency
 

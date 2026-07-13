@@ -19,6 +19,37 @@ Each entry records:
 
 <!-- Entries are prepended (newest first) -->
 
+### 2026-07-13 — Gaming-Ready, automatischer Device-Banner, PR #14 (`dev` → `main`)
+
+- **Action:** update
+- **Output:** `wiki/bootstrap-installation.md`, `wiki/ansible-architecture.md`,
+  `wiki/role-packages.md`, `wiki/desktop-vs-server.md`, `wiki/zsh-configuration.md`,
+  `wiki/role-dotfiles-stow.md`, `index.md`, root `README.md`
+- **Notes:**
+  - Re-synced directly against the live repo state on `main` (git log + diffs), not a
+    new raw snapshot — `dev` was merged into `main` via PR #14 (`1c28585`) since the
+    last update, bringing in everything below.
+  - **Gaming-Ready:** new opt-in asked during bootstrap (desktop only, Schritt 1b),
+    `game_ready` extra-var, installs Steam (dnf5) + Prism Launcher (Flatpak, moved out
+    of the regular desktop Flatpak list). Two follow-up fix commits added `| bool`
+    casts to the `when:` conditions (raw `--extra-vars` strings aren't auto-coerced).
+  - **Startup banner:** `custom/startupcode.zsh` now reads hardware vendor/model live
+    via `hostnamectl --json short | jq -r ...` instead of the static `custom/Device.txt`
+    file; `jq` added to the base package list. (A prior same-day wiki commit,
+    `5c2ef18`, had already partially updated `zsh-configuration.md` but incorrectly
+    described a Device.txt fallback that doesn't exist in the code — corrected here.)
+  - **Drift fix (unrelated to the above, found during this sync):**
+    `wiki/role-dotfiles-stow.md` still described the old `stow --restow` +
+    `changed_when: true` approach; the actual task (changed back on 2026-06-29,
+    commit range around `ae2ccc1`) uses `stow --verbose` + a `changed_when` on
+    `LINK:`/`UNLINK:` in stderr. That earlier update touched
+    `testing-molecule.md`/`ci-github-actions.md`/`role-packages.md`/
+    `ansible-architecture.md` but missed this page.
+  - `.gitignore` (new file) excludes `zsh/.oh-my-zsh/cache/.zsh-update` (noisy
+    auto-generated timestamp); `jq` added to packages; a couple of typo fixes.
+  - `README.md`: added the Gaming-Ready question to the setup description and the
+    `jq` note; no structural changes needed otherwise.
+
 ### 2026-06-29 — Test-Suite repariert (Molecule + Lint) & Flatpak-Apps
 
 - **Action:** update

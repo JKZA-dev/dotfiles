@@ -5,7 +5,7 @@ the `install_mode` variable plus a `molecule_test` flag gate which roles run.
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`ansible/setup.yml`, `inventory.ini`, `requirements.yml`)
 **Related:** [[overview]], [[bootstrap-installation]], [[desktop-vs-server]], [[role-packages]], [[role-dotfiles-stow]], [[role-ssh]], [[role-kde-desktop]], [[zsh-configuration]]
-**Last updated:** 2026-06-29
+**Last updated:** 2026-07-13
 
 ---
 
@@ -31,6 +31,7 @@ with `become: true` only when they need root).
 | `omz_dir` | `$HOME/.oh-my-zsh` | Oh-My-Zsh location |
 | `local_user` | `$USER` | Whose shell to change |
 | `install_mode` | `desktop` (default) | Desktop vs server switch |
+| `game_ready` | `false` (default) | Gaming-Ready packages switch (Steam, Prism Launcher — desktop only, see [[role-packages]]) |
 
 ### Role order and gating
 

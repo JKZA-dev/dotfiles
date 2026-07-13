@@ -5,7 +5,7 @@ packages into `$HOME`, after backing up any conflicting real files.
 
 **Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`ansible/roles/dotfiles/tasks/main.yml`)
 **Related:** [[ansible-architecture]], [[zsh-configuration]], [[neovim-configuration]], [[fastfetch-configuration]], [[testing-molecule]]
-**Last updated:** 2026-06-21
+**Last updated:** 2026-07-13
 
 ---
 
@@ -35,10 +35,14 @@ Everything is then versioned by Git from one place.
    links inside it.
 4. **Stow each package:**
    ```bash
-   stow --restow --target=$HOME <package>   # for zsh, nvim, fastfetch
+   stow --verbose --target=$HOME <package>   # for zsh, nvim, fastfetch
    ```
-   `--restow` removes stale links and recreates them, so it is safe on repeated runs.
-   `changed_when: true` is set because `stow` doesn't report change state to Ansible.
+   `--verbose` makes stow print `LINK:`/`UNLINK:` lines only when it actually
+   changes something; `changed_when: "'LINK:' in stow_result.stderr or 'UNLINK:' in
+   stow_result.stderr"` uses that output so Ansible reports idempotent re-runs as
+   unchanged ([[testing-molecule]]'s idempotency check relies on this). This
+   replaced an earlier `--restow` + `changed_when: true` approach, which always
+   reported "changed" even when nothing moved.
 
 ## Stowed packages
 
