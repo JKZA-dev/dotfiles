@@ -4,7 +4,6 @@
 # Kann standalone oder aus run-ansible.sh heraus aufgerufen werden.
 #
 
-ROT='\033[0;31m'
 GRUEN='\033[0;32m'
 GELB='\033[1;33m'
 BLAU='\033[0;34m'

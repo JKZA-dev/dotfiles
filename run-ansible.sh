@@ -37,7 +37,7 @@ echo "  2) Server   – Fedora Server (Pakete, ZSH, Dotfiles, SSH – kein KDE/G
 echo ""
 
 while true; do
-    read -p "Auswahl [1/2]: " auswahl < /dev/tty
+    read -r -p "Auswahl [1/2]: " auswahl < /dev/tty
     case $auswahl in
         1) INSTALL_MODE="desktop"; break ;;
         2) INSTALL_MODE="server";  break ;;
@@ -61,7 +61,7 @@ if [ "$INSTALL_MODE" = "desktop" ]; then
     echo ""
 
     while true; do
-        read -p "Gaming-Pakete installieren? [j/n]: " gaming_auswahl < /dev/tty
+        read -r -p "Gaming-Pakete installieren? [j/n]: " gaming_auswahl < /dev/tty
         case $gaming_auswahl in
             [jJ]) GAME_READY=true;  break ;;
             [nN]) GAME_READY=false; break ;;
@@ -94,7 +94,7 @@ fi
 echo ""
 
 while true; do
-    read -p "SSH-Key jetzt generieren? [j/n]: " ssh_auswahl < /dev/tty
+    read -r -p "SSH-Key jetzt generieren? [j/n]: " ssh_auswahl < /dev/tty
     case $ssh_auswahl in
         [jJ]) GEN_SSH_KEY=true;  break ;;
         [nN]) GEN_SSH_KEY=false; break ;;
@@ -120,7 +120,7 @@ echo -e "  (Ermöglicht das direkte Mitwirken am Repo per SSH-Authentifizierung)
 echo ""
 
 while true; do
-    read -p "Repo auf SSH umstellen? [j/n]: " ssh_remote_auswahl < /dev/tty
+    read -r -p "Repo auf SSH umstellen? [j/n]: " ssh_remote_auswahl < /dev/tty
     case $ssh_remote_auswahl in
         [jJ]) CHANGE_TO_SSH=true;  break ;;
         [nN]) CHANGE_TO_SSH=false; break ;;
@@ -205,7 +205,7 @@ if [ "$CHANGE_TO_SSH" = true ]; then
         echo -e "  ${GELB}[!]${RESET} Kein SSH-Key gefunden – für den Repo-Wechsel wird ein Key benötigt."
         echo ""
         while true; do
-            read -p "SSH-Key jetzt generieren? [j/n]: " retry_ssh < /dev/tty
+            read -r -p "SSH-Key jetzt generieren? [j/n]: " retry_ssh < /dev/tty
             case $retry_ssh in
                 [jJ])
                     bash "$DOTFILES_DIR/ansible/roles/ssh_config/tasks/generate_ssh_key.sh"
@@ -228,7 +228,7 @@ if [ "$CHANGE_TO_SSH" = true ]; then
         echo -e "  Öffne: https://github.com/settings/keys"
         echo -e "  Klicke auf 'New SSH key' und füge den obigen Key ein."
         echo ""
-        read -p "  Drücke [Enter], sobald du den Key zu GitHub hinzugefügt hast..." < /dev/tty
+        read -r -p "  Drücke [Enter], sobald du den Key zu GitHub hinzugefügt hast..." < /dev/tty
         echo ""
         echo -e "  ${GELB}Schritt 3: Remote URL auf SSH umstellen${RESET}"
         git -C "$DOTFILES_DIR" remote set-url origin git@github.com:JKZA-dev/dotfiles.git
