@@ -22,7 +22,7 @@ Last updated: 2026-09-13
 ### Application configs (stow packages)
 - [ZSH Configuration](wiki/zsh-configuration.md) — Oh-My-Zsh, Powerlevel10k, aliases; OS-neutral for Fedora + macOS via `custom/bin/device-model.sh` (cached device banner) and an `$OSTYPE` alias switch | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-09-13
 - [Neovim Configuration](wiki/neovim-configuration.md) — LazyVim / lazy.nvim (near-stock) | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
-- [Fastfetch Configuration](wiki/fastfetch-configuration.md) — module list + custom OS_Age module | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
+- [Fastfetch Configuration](wiki/fastfetch-configuration.md) — module list + custom OS_Age module, OS-neutral `stat` since 2026-09-13 | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-09-13
 
 ### Quality
 - [Testing with Molecule](wiki/testing-molecule.md) — Podman scenarios, prepare stage, verify checks, failure modes | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-06-29

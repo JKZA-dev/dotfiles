@@ -19,6 +19,26 @@ Each entry records:
 
 <!-- Entries are prepended (newest first) -->
 
+### 2026-09-13b — fastfetch OS_Age lieferte auf macOS stillschweigend falsche Werte (Branch `MacOScomp`)
+
+- **Action:** update
+- **Source:** the dotfiles repo itself, worktree `dfdev-MacOScomp` @ branch `MacOScomp`
+- **Output:** `wiki/fastfetch-configuration.md`
+- **Notes:**
+  - Nach dem hostnamectl-Fix (siehe Eintrag unten) gezielt nach weiteren
+    Linux-Annahmen in den gestowten Configs (`nvim/`, `fastfetch/`, `.zshrc`)
+    gesucht, außerhalb des Ansible-Installationsprozesses.
+  - `OS_Age`-Modul (`fastfetch/.config/fastfetch/config.jsonc`) rief `stat -c %W /`
+    (GNU-only) auf. Auf macOS (BSD stat) schlägt das fehl, aber weil es in `$(...)`
+    steckt, wird der Fehler verschluckt und `birth_install` leer — die Arithmetik
+    behandelt das als `0` und das Modul zeigt eine plausibel aussehende, aber
+    falsche Zahl statt eines Fehlers. Verifiziert: `20709 days` auf einem
+    2024er Mac.
+  - Fix: `uname -s`-Weiche, Darwin nutzt `stat -f %B /`, Linux unverändert
+    `stat -c %W /`.
+  - Getestet via `fastfetch -c <worktree>/fastfetch/.../config.jsonc --pipe false`:
+    liefert jetzt `31 days` auf diesem Mac.
+
 ### 2026-09-13 — zsh-Config Linux/macOS-kompatibel (Branch `MacOScomp`)
 
 - **Action:** update

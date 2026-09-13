@@ -8,7 +8,7 @@
       "type": "command",
       "key": "OS_Age",
       "keyColor": "magenta",
-      "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86399)); echo $days_difference days"
+      "text": "if [ \"$(uname -s)\" = Darwin ]; then birth_install=$(stat -f %B /); else birth_install=$(stat -c %W /); fi; current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86399)); echo $days_difference days"
     },
     "host",
     "kernel",
