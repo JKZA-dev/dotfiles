@@ -16,8 +16,14 @@ differences isolated in `custom/bin/device-model.sh` and an `$OSTYPE` switch in
 
 The whole `zsh/` folder is a stow package ([[role-dotfiles-stow]]). It contains both
 `.zshrc` and a **vendored Oh-My-Zsh distribution** under `.oh-my-zsh/` (all standard
-plugins/libs plus the Powerlevel10k theme and its gitstatus C++ helper). The
-`ansible` zsh role only sets `/bin/zsh` as the default shell ([[ansible-architecture]]).
+plugins/libs plus the Powerlevel10k theme and its gitstatus C++ helper, plus
+`zsh-autosuggestions` under `custom/plugins/` — unlike P10k's full-tree vendoring,
+only the runtime files are kept here: `zsh-autosuggestions.plugin.zsh`,
+`zsh-autosuggestions.zsh`, `LICENSE`, `VERSION`). The `ansible` zsh role only sets
+`/bin/zsh` as the default shell ([[ansible-architecture]]).
+
+> **TODO:** integrate `zsh-autosuggestions` as a git submodule instead of vendored
+> files, as suggested by Jan.
 
 `.gitignore` (repo root) excludes `zsh/.oh-my-zsh/cache/.zsh-update` — Oh-My-Zsh
 rewrites this auto-update-check timestamp on its own, so committing it just produced

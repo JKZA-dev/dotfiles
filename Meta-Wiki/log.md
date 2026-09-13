@@ -19,6 +19,26 @@ Each entry records:
 
 <!-- Entries are prepended (newest first) -->
 
+### 2026-09-13c — zsh-autosuggestions-Plugin fehlte im Repo (Branch `MacOScomp`)
+
+- **Action:** update
+- **Source:** the dotfiles repo itself, worktree `dfdev-MacOScomp` @ branch `MacOScomp`
+- **Output:** `wiki/zsh-configuration.md`
+- **Notes:**
+  - `.zshrc` listet `zsh-autosuggestions` in `plugins=()`, aber `custom/plugins/`
+    enthielt nur `example/`. Führte zu
+    `[oh-my-zsh] plugin 'zsh-autosuggestions' not found` bei jedem Shell-Start
+    (kein macOS-spezifischer Bug, aber auf dem frischen Mac-Checkout zuerst
+    aufgefallen).
+  - Fix: Plugin von `zsh-users/zsh-autosuggestions` (Commit `85919cd`, 2025-06-24)
+    vendoriert — anders als beim vollständig vendorierten Powerlevel10k aber nur
+    die Laufzeit-Dateien (`zsh-autosuggestions.plugin.zsh`, `zsh-autosuggestions.zsh`,
+    `LICENSE`, `VERSION`), keine Ruby-Testsuite/CI-Workflows aus dem Upstream-Repo.
+  - **TODO** (Nutzer-Vorgabe, Vorschlag von Jan): perspektivisch als Git-Submodule
+    statt vendorierter Dateien integrieren.
+  - Getestet via `ZSH_CUSTOM=<worktree>/zsh/.oh-my-zsh/custom zsh -i -c exit`:
+    Warnung weg, `autosuggest-*`-Widgets registriert.
+
 ### 2026-09-13b — fastfetch OS_Age lieferte auf macOS stillschweigend falsche Werte (Branch `MacOScomp`)
 
 - **Action:** update
