@@ -23,7 +23,6 @@
   loop:
     - aliases.zsh
     - startupcode.zsh
-    - Device.txt
     - example.zsh
   ignore_errors: true
 

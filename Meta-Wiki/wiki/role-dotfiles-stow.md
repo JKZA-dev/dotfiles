@@ -26,7 +26,7 @@ Everything is then versioned by Git from one place.
 ## Task sequence
 
 1. **Back up Oh-My-Zsh custom files** that would block stow — moves
-   `aliases.zsh`, `startupcode.zsh`, `Device.txt`, `example.zsh` to `.bak`
+   `aliases.zsh`, `startupcode.zsh`, `example.zsh` to `.bak`
    (using `command` with `removes:` so it only runs if the file exists;
    `ignore_errors: true`). Oh-My-Zsh's installer drops its own versions of these.
 2. **Back up `~/.zshrc`** — stat first; if it exists *and is not already a symlink*,

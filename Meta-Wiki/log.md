@@ -19,6 +19,36 @@ Each entry records:
 
 <!-- Entries are prepended (newest first) -->
 
+### 2026-09-13 — zsh-Config Linux/macOS-kompatibel (Branch `MacOScomp`)
+
+- **Action:** update
+- **Source:** the dotfiles repo itself, worktree `dfdev-MacOScomp` @ branch `MacOScomp`
+- **Output:** `wiki/zsh-configuration.md`, `wiki/role-packages.md`,
+  `wiki/role-dotfiles-stow.md`, `index.md`
+- **Notes:**
+  - Auslöser: Der Banner rief `hostnamectl --json short | jq …` auf. `hostnamectl` ist
+    systemd-only und schlägt auf macOS bei jedem Shell-Start fehl.
+  - Neues Skript `zsh/.oh-my-zsh/custom/bin/device-model.sh` kapselt die OS-Weiche
+    (Darwin: `system_profiler` + `sysctl hw.model`; Linux: `hostnamectl` → DMI →
+    Devicetree; Fallback `uname`). Ergebnis wird in
+    `${XDG_CACHE_HOME:-$HOME/.cache}/device-model` gecacht (~150 ms → ~7 ms).
+    Bewusst außerhalb des Repos, im Gegensatz zum alten `custom/Device.txt`.
+  - `custom/aliases.zsh` in gemeinsame Aliase + `case "$OSTYPE"`-Weiche aufgeteilt
+    (dnf unter `linux*`, brew unter `darwin*`). `SUDO_EDITOR` zeigte auf
+    `/usr/bin/zsh` statt auf nvim und existiert auf macOS gar nicht — jetzt
+    `$(command -v nvim)`.
+  - CI: shellcheck-Liste in `.github/workflows/test-ansible.yml` um das neue Skript
+    erweitert. `.gitignore` um `.DS_Store` / `*.swp` ergänzt (macOS-Nutzung).
+  - `jq` bleibt installiert, ist aber keine Banner-Abhängigkeit mehr — in
+    `role-packages.md` korrigiert.
+  - `custom/Device.txt` ersatzlos gelöscht (wurde von nichts mehr gelesen, Inhalt war
+    maschinenspezifisch) und aus dem Backup-Loop der dotfiles-Rolle entfernt.
+  - **Offen:** Der Alias `needs-reboot` definiert `echo $?` in Doppelquotes, wird also
+    schon beim Laden zu `echo 0` expandiert. Bug besteht seit jeher, bewusst nicht in
+    diesem Durchgang gefixt (nur auf Fedora testbar) — hier nur dokumentiert.
+  - **Nicht angefasst:** `run-ansible.sh` und die Ansible-Rollen bleiben Fedora-only.
+    macOS-Support dafür ist ein eigenes, größeres Vorhaben.
+
 ### 2026-07-13 — Gaming-Ready, automatischer Device-Banner, PR #14 (`dev` → `main`)
 
 - **Action:** update

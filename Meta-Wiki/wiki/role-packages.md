@@ -25,7 +25,9 @@ Notes:
 - `cmatrix` + `lolcat` back the joke aliases in [[zsh-configuration]].
 - `python3-pip` / `python3-packaging` are needed for the `pip`-installed tools below
   and for `dnf5` Python bindings.
-- `jq` parses the `hostnamectl` output used by the startup banner ([[zsh-configuration]]).
+- `jq` is a general-purpose JSON tool. It used to parse the `hostnamectl` output for the
+  startup banner, but [[zsh-configuration]]'s `device-model.sh` now parses the text
+  output directly — `jq` is no longer a banner dependency.
 
 ## Desktop packages (`install_mode == 'desktop'`)
 

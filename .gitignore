@@ -1,1 +1,5 @@
 zsh/.oh-my-zsh/cache/.zsh-update
+
+# macOS- und Editor-Muell
+.DS_Store
+*.swp

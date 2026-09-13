@@ -65,7 +65,7 @@ jobs:
         run: ansible-lint
 
       - name: shellcheck (eigene Skripte)
-        run: shellcheck run-ansible.sh ansible/roles/ssh_config/tasks/generate_ssh_key.sh
+        run: shellcheck run-ansible.sh ansible/roles/ssh_config/tasks/generate_ssh_key.sh zsh/.oh-my-zsh/custom/bin/device-model.sh
 
   molecule:
     name: "Molecule [${{ matrix.scenario }}]"

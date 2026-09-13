@@ -3,8 +3,9 @@
 
 #Custom Code on Startup von mir selbst:
 zsh --version
-fastfetch --pipe false
+command -v fastfetch >/dev/null && fastfetch --pipe false
 cd
-print -l "Einen guten Tag mein Herr, sie befinden sich auf ihrem" 
-hostnamectl --json short | jq '(.HardwareVendor) + " " + (.HardwareModel)' -r
+print -l "Einen guten Tag mein Herr, sie befinden sich auf ihrem"
+# Geraetemodell OS-neutral (Fedora + macOS), Ergebnis wird gecacht:
+"${ZSH_CUSTOM:-$ZSH/custom}/bin/device-model.sh"
 print -l "" "Ich wünsche einen Produktiven Tag!"

@@ -1,7 +1,7 @@
 # Meta-Wiki Index
 
 Master index of all wiki pages and their relationships.
-Last updated: 2026-07-13
+Last updated: 2026-09-13
 
 ---
 
@@ -20,7 +20,7 @@ Last updated: 2026-07-13
 - [Role: kde & backgrounds](wiki/role-kde-desktop.md) — Konsave KDE profile + wallpapers (desktop only) | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 
 ### Application configs (stow packages)
-- [ZSH Configuration](wiki/zsh-configuration.md) — Oh-My-Zsh, Powerlevel10k, aliases, startup banner now driven by `hostnamectl`/`jq` | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-07-13
+- [ZSH Configuration](wiki/zsh-configuration.md) — Oh-My-Zsh, Powerlevel10k, aliases; OS-neutral for Fedora + macOS via `custom/bin/device-model.sh` (cached device banner) and an `$OSTYPE` alias switch | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | updated: 2026-09-13
 - [Neovim Configuration](wiki/neovim-configuration.md) — LazyVim / lazy.nvim (near-stock) | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 - [Fastfetch Configuration](wiki/fastfetch-configuration.md) — module list + custom OS_Age module | source: `raw/2026-06-21-dotfiles-repo-snapshot.md` | ingested: 2026-06-21
 
@@ -48,6 +48,7 @@ Roles → configs:
 
 Config cross-links:
 - `zsh-configuration` → `fastfetch-configuration` (startup runs fastfetch)
+- `zsh-configuration` → `ci-github-actions` (shellcheck covers `custom/bin/device-model.sh`)
 - `zsh-configuration` → `neovim-configuration` (`v` alias, `$EDITOR`)
 - `zsh-configuration` → `role-kde-desktop` (PATH exposes pip `--user` konsave)
 
