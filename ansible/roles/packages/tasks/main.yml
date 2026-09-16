@@ -24,7 +24,7 @@
       - cmatrix
       - lolcat
       - yt-dlp
-      - Tmux
+      - tmux
       - jq
     state: present
 
