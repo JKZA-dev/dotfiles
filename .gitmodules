@@ -1,3 +1,6 @@
 [submodule "applets/window-title"]
 	path = applets/window-title
 	url = https://github.com/psifidotos/applet-window-title.git
+[submodule "zsh/.oh-my-zsh/custom/plugins/zsh/.oh-my-zsh/custom/plugins/zsh-autosuggestions"]
+	path = zsh/.oh-my-zsh/custom/plugins/zsh/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+	url = https://github.com/zsh-users/zsh-autosuggestions.git
