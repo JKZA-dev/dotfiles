@@ -1,0 +1,16 @@
+[submodule "vendor/ohmyzsh"]
+	path = vendor/ohmyzsh
+	url = https://github.com/ohmyzsh/ohmyzsh.git
+	shallow = true
+[submodule "vendor/powerlevel10k"]
+	path = vendor/powerlevel10k
+	url = https://github.com/romkatv/powerlevel10k.git
+	shallow = true
+[submodule "vendor/zsh-autosuggestions"]
+	path = vendor/zsh-autosuggestions
+	url = https://github.com/zsh-users/zsh-autosuggestions.git
+	shallow = true
+[submodule "vendor/fastfetch-kde-splash"]
+	path = vendor/fastfetch-kde-splash
+	url = https://github.com/herzane52/fastfetch-kde-splash.git
+	shallow = true
