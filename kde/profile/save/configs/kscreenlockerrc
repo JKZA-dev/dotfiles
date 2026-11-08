@@ -1,0 +1,7 @@
+[Daemon]
+LockGrace=30
+Timeout=10
+
+[Greeter][Wallpaper][org.kde.image][General]
+Image=__HOME__/Downloads/981e8e91f90c93bf5e715527e1922724645f1214.png
+PreviewImage=__HOME__/Downloads/981e8e91f90c93bf5e715527e1922724645f1214.png

@@ -1,0 +1,4 @@
+[Libinput][1739][31251][DLL07BE:01 06CB:7A13 Touchpad]
+MiddleButtonEmulation=true
+NaturalScroll=true
+ScrollFactor=1

@@ -1,16 +1,17 @@
-# yamllint – leichte YAML-Prüfung für die CI.
-# "relaxed" deaktiviert die pingeligen Regeln (document-start, truthy, ...)
-# und meldet nur echte YAML-Fehler.
-extends: relaxed
+---
+extends: default
 
-# Vendored / generierte Verzeichnisse nicht prüfen.
 ignore: |
-  zsh/.oh-my-zsh/
-  fastfetch-Splashscreen/
-  applets/
-  konsave/
-  Backgrounds/
-  nvim/.config/nvim/lazy-lock.json
+  vendor/
+  kde/
+  stow/backgrounds/
+  stow/nvim/.config/nvim/lazy-lock.json
 
 rules:
-  line-length: disable
+  braces: { max-spaces-inside: 1 }
+  brackets: { max-spaces-inside: 1 }
+  comments: { min-spaces-from-content: 1 }
+  comments-indentation: false
+  line-length: { max: 160 }
+  octal-values: { forbid-implicit-octal: true, forbid-explicit-octal: true }
+  truthy: { check-keys: false }

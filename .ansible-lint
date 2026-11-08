@@ -1,15 +1,10 @@
-# ansible-lint – leichtgewichtige Prüfung.
-# profile "min" prüft nur Dinge, die das Playbook wirklich brechen
-# (Syntax, ungültige Modul-Optionen, ...) und bleibt damit ruhig & grün.
-profile: min
+---
+profile: production
 
 exclude_paths:
-  - zsh/.oh-my-zsh/
-  - fastfetch-Splashscreen/
-  - applets/
-  - konsave/
+  - vendor/
+  - kde/
+  - stow/
   - .github/
-
-# Bewusste Muster, die nicht gemeldet werden sollen.
-skip_list:
-  - command-instead-of-module   # stow hat kein eigenes Ansible-Modul
+  - .config/molecule/
+  - molecule/*/molecule.yml

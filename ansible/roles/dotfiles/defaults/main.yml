@@ -1,0 +1,4 @@
+---
+dotfiles_stow_packages: [zsh, nvim, fastfetch]
+dotfiles_stow_packages_desktop: [backgrounds]
+dotfiles_backup_files: [.zshrc, .zprofile, .p10k.zsh]

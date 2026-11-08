@@ -1,0 +1,10 @@
+---
+- name: Pin plugins to lazy-lock.json
+  ansible.builtin.command:
+    cmd: nvim --headless "+Lazy! restore" +qa
+  changed_when: true
+
+- name: Install Mason tools and Tree-sitter parsers
+  ansible.builtin.command:
+    cmd: nvim --headless -S {{ dotfiles_dir }}/ansible/roles/neovim/files/sync.lua
+  changed_when: true

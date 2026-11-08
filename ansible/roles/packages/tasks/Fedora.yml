@@ -1,0 +1,65 @@
+---
+- name: Enable RPM Fusion free and nonfree
+  become: true
+  ansible.builtin.dnf5:
+    name:
+      - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts.distribution_major_version }}.noarch.rpm"
+      - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts.distribution_major_version }}.noarch.rpm"
+    state: present
+  when: packages_rpmfusion
+
+# - name: Add Microsoft Edge repository
+#   become: true
+#   ansible.builtin.yum_repository:
+#     name: microsoft-edge
+#     description: Microsoft Edge
+#     baseurl: https://packages.microsoft.com/yumrepos/edge
+#     gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+#     gpgcheck: true
+
+- name: Install RPM packages
+  become: true
+  ansible.builtin.dnf5:
+    name: "{{ packages_selected_native }}"
+    state: present
+
+- name: Enable Fedora third-party repositories
+  become: true
+  ansible.builtin.command: fedora-third-party enable
+  changed_when: false
+
+- name: Install Flatpak apps
+  when: install_mode == 'desktop' and packages_flatpak
+  become: true
+  block:
+    - name: Add Flathub remote
+      community.general.flatpak_remote:
+        name: flathub
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        method: system
+        state: present
+
+    - name: Install apps from Flathub
+      community.general.flatpak:
+        name: "{{ packages_selected_apps }}"
+        method: system
+        state: present
+
+- name: Install JetBrains Mono Nerd Font
+  when: install_mode == 'desktop'
+  vars:
+    packages_font_dir: "{{ ansible_facts.user_dir }}/.local/share/fonts/JetBrainsMonoNerdFont"
+  block:
+    - name: Create font directory
+      ansible.builtin.file:
+        path: "{{ packages_font_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download and unpack font
+      ansible.builtin.unarchive:
+        src: "https://github.com/ryanoasis/nerd-fonts/releases/download/{{ packages_nerd_font_version }}/JetBrainsMono.tar.xz"
+        dest: "{{ packages_font_dir }}"
+        remote_src: true
+        creates: "{{ packages_font_dir }}/JetBrainsMonoNerdFont-Regular.ttf"
+      notify: Refresh font cache

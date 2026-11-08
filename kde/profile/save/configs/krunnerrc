@@ -1,0 +1,6 @@
+[General]
+FreeFloating=true
+historyBehavior=ImmediateCompletion
+
+[Plugins][Favorites]
+plugins=krunner_services,krunner_systemsettings,org.kde.activities2,calculator,krunner_shell,browsertabs,baloosearch,helprunner

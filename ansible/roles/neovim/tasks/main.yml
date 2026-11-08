@@ -1,0 +1,11 @@
+---
+- name: Clone Neovim plugins
+  ansible.builtin.command:
+    cmd: nvim --headless +qa
+    creates: "{{ ansible_facts.user_dir }}/.local/share/nvim/lazy/LazyVim"
+  environment:
+    LAZY_LOCKFILE: "{{ ansible_facts.user_dir }}/.cache/lazy-bootstrap-lock.json"
+  when: neovim_bootstrap
+  notify:
+    - Pin plugins to lazy-lock.json
+    - Install Mason tools and Tree-sitter parsers

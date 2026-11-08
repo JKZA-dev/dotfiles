@@ -1,0 +1,3 @@
+---
+macos_terminal_profile: Pro
+macos_terminal_wallpaper: "{{ ansible_facts.user_dir }}/Pictures/Hacknet/Starfield0 (modded).png"

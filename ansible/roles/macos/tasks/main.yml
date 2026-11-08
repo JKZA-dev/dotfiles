@@ -1,0 +1,19 @@
+---
+- name: Read default Terminal profile
+  ansible.builtin.command: defaults read com.apple.Terminal "Default Window Settings"
+  changed_when: false
+  failed_when: false # unset on a fresh system
+  register: macos_terminal_default
+
+- name: Import Terminal profile
+  ansible.builtin.command:
+    argv:
+      - osascript
+      - -l
+      - JavaScript
+      - "{{ dotfiles_dir }}/ansible/roles/macos/files/import-terminal-profile.js"
+      - "{{ dotfiles_dir }}/macos/{{ macos_terminal_profile }}.terminal"
+      - "{{ macos_terminal_profile }}"
+      - "{{ macos_terminal_wallpaper }}"
+  changed_when: true
+  when: macos_terminal_default.stdout != macos_terminal_profile
