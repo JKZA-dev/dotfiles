@@ -1,51 +1,11 @@
-# Role: kde & backgrounds (Desktop)
+# Roles: kde and macos
 
-**Summary:** Desktop-only roles that copy the Hacknet wallpapers and import/apply the
-KDE Plasma profile via Konsave; both are skipped in server mode and in containers.
+## kde (Fedora desktop)
+**Profile.** `kde/profile/` is an unpacked konsave export, so changes are diffable. Paths use the placeholder `__HOME__`. The role copies it to a temporary directory, inserts the home directory, zips it as `<profile>.knsv` and runs `konsave -i`. `konsave -a` runs only with `kde_apply_profile: true`. Plasmoids such as window title ship inside the profile.
 
-**Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`roles/kde/tasks/main.yml`, `roles/backgrounds/tasks/main.yml`, `konsave/`, `fastfetch-Splashscreen/.../metadata.json`)
-**Related:** [[ansible-architecture]], [[desktop-vs-server]], [[fastfetch-configuration]]
-**Last updated:** 2026-06-21
+To capture the current desktop, run `scripts/kde-export.sh` on the Fedora machine and commit the result. The script also enforces the splash theme and the Konsole font.
 
----
+**Splash.** `vendor/fastfetch-kde-splash` is copied to `~/.local/share/plasma/look-and-feel/fastfetch-splash`. `Splash.qml` is written with the values from `kde_splash` (color, layout, background), the same substitutions upstream's interactive `install.sh` makes.
 
-## When these run
-
-Both roles carry `when: install_mode == 'desktop' and not molecule_test`. So they run
-only on real desktops, never on servers or inside Molecule containers (KDE needs a
-live Plasma session and uses interactive prompts — see [[testing-molecule]]).
-
-## backgrounds role
-
-1. Create `~/Pictures/Hacknet/` (mode `0755`).
-2. Copy the Hacknet wallpaper set from `Backgrounds/Pictures/Hacknet/` into it
-   (`remote_src: true`, mode `0644`).
-
-The wallpapers are the "Hacknet" game art set (e.g. Starfield, Floatvoid, Miami,
-riptide). KDE then finds them as wallpaper options.
-
-## kde role — Konsave profile
-
-[Konsave](https://github.com/Prayag2/konsave) saves/restores a full KDE Plasma config
-(theme, icons, panels, widgets, colors) as a single `.knsv` archive. The profile here
-is `konsave/JKZA-KDE-Workstation.knsv`.
-
-Task flow:
-1. **Install Konsave** via `pip --user`.
-2. **List imported profiles** (`konsave -l`, `changed_when: false`, `ignore_errors`).
-3. **Import** `JKZA-KDE-Workstation.knsv` — only if not already imported (checks the
-   list output / non-zero rc).
-4. **Interactive `pause`** — asks `Apply profile now? (y/n)`. Applying overwrites the
-   current KDE layout and requires a re-login.
-5. **Apply** (`konsave -a JKZA-KDE-Workstation`) if the answer was yes; otherwise a
-   debug message tells you how to apply it manually later.
-
-Konsave binary is invoked at `~/.local/bin/konsave` (the pip `--user` install path,
-added to `PATH` in [[zsh-configuration]]).
-
-## Related: Fastfetch KDE splash screen
-
-`fastfetch-Splashscreen/fastfetch-splash/` is a **third-party** Plasma Look-and-Feel
-splash package (`fastfetch-splash` v1.5, MIT, by *herzane*) that shows a fastfetch-style
-splash. It is bundled in the repo but not wired into any Ansible role — installed
-manually via its own `install.sh` if desired. See also [[fastfetch-configuration]].
+## macos (macOS desktop)
+Imports `macos/Pro.terminal` into `com.apple.Terminal` and makes it the default and startup profile. `import-terminal-profile.js` rebuilds the background bookmark, which is machine-specific, from `macos_terminal_wallpaper`. Quit Terminal before the import, otherwise it can overwrite the settings when it exits.

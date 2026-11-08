@@ -1,87 +1,17 @@
 # Role: packages
 
-**Summary:** Installs base packages on every machine and a GUI/desktop layer
-(plus Microsoft Edge and Flatpak) only in desktop mode, using `dnf5`, `pip`, and Flatpak.
-The heavy/flaky desktop bits are skipped under `molecule_test` to keep CI fast.
+`tasks/main.yml` loads `vars/<distribution>.yml`, computes `packages_groups` once, then includes `tasks/<distribution>.yml`.
 
-**Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`ansible/roles/packages/tasks/main.yml`)
-**Related:** [[ansible-architecture]], [[desktop-vs-server]], [[role-kde-desktop]], [[testing-molecule]]
-**Last updated:** 2026-07-13
-
----
-
-## Base packages (always installed)
-
-Via `ansible.builtin.dnf5` with `state: present`:
-
-```
-zsh  git  stow  curl  zip  btop  fastfetch  neovim
-python3-pip  python3-packaging  ninja-build
-cmatrix  lolcat  yt-dlp  Tmux  jq
+```yaml
+packages_native: { base, desktop, desktop_heavy, gaming } # dnf or Homebrew formulae
+packages_apps:   { base, desktop, desktop_heavy, gaming } # Flatpak or casks
 ```
 
-Notes:
-- `stow` powers [[role-dotfiles-stow]]; `zsh` is made default by the zsh role.
-- `cmatrix` + `lolcat` back the joke aliases in [[zsh-configuration]].
-- `python3-pip` / `python3-packaging` are needed for the `pip`-installed tools below
-  and for `dnf5` Python bindings.
-- `jq` is a general-purpose JSON tool. It used to parse the `hostnamectl` output for the
-  startup banner, but [[zsh-configuration]]'s `device-model.sh` now parses the text
-  output directly — `jq` is no longer a banner dependency.
+## Fedora
+Enables RPM Fusion free and nonfree and the Fedora third-party repositories, installs everything in one `dnf5` transaction, adds Flathub and its apps, and unpacks JetBrains Mono Nerd Font into `~/.local/share/fonts`. Steam comes from RPM Fusion nonfree. Microsoft Edge remains as a commented-out entry.
 
-## Desktop packages (`install_mode == 'desktop'`)
+## macOS
+Homebrew formulae and casks, without `become`.
 
-Split into two dnf5 tasks:
-
-- **Base (also runs in CI):** `gimp` — the representative GUI package proving the
-  desktop branch installs something ([[testing-molecule]] asserts it).
-- **Heavy (skipped under `molecule_test`):** `kicad`, `plasma-browser-integration`,
-  `applet-window-buttons`.
-
-## Gaming-Ready packages (`install_mode == 'desktop'` + `game_ready`)
-
-Opt-in add-on on top of desktop mode, chosen interactively by
-[[bootstrap-installation]] (Schritt 1b) and passed through as the `game_ready`
-extra-var. Both tasks are gated `(game_ready | default(false)) | bool` (the
-explicit `| bool` cast avoids Ansible's "must have a boolean result" error on the
-string value coming through `--extra-vars`) and `not molecule_test`:
-
-- **Steam** — `ansible.builtin.dnf5`.
-- **Prism Launcher** (`org.prismlauncher.PrismLauncher`) — Flatpak, installed
-  separately from the regular desktop Flatpak list below.
-
-## Microsoft Edge (desktop only, not in CI)
-
-Three tasks: stat-check whether `/etc/yum.repos.d/microsoft-edge.repo` exists, add
-the repo via `yum_repository` (with Microsoft GPG key) if not, then install
-`microsoft-edge-stable`. The stat guard keeps the repo-add idempotent. All three are
-gated `not molecule_test` (external proprietary repo — flaky/heavy in containers).
-
-## pip tools
-
-- **`speedtest-cli`** — installed on **every** machine with
-  `--user --break-system-packages` (Fedora's system Python is externally-managed,
-  PEP 668, so plain `--user` is refused).
-- (`konsave` is also pip-installed, but by [[role-kde-desktop]], not here.)
-
-## Flatpak (desktop only, not in CI)
-
-Adds the **Flathub** remote (`community.general.flatpak_remote`, system method) and
-installs desktop flatpaks (`community.general.flatpak`), gated `not molecule_test`
-(the module needs the `flatpak` binary). Current app list:
-
-```
-im.riot.Riot                      # Element (Matrix client)
-com.github.tchx84.Flatseal        # Flatseal (Flatpak permissions)
-com.ktechpit.whatsie              # Whatsie (WhatsApp client)
-com.discordapp.Discord            # Discord
-```
-
-(The old `com.example.App` placeholder — which broke every desktop run — is gone.
-Prism Launcher moved out of this list into the Gaming-Ready-gated task above.)
-
-## Idempotency
-
-`state: present`, the Edge repo stat-guard, and `--break-system-packages` pip mean
-re-runs report no changes, which [[testing-molecule]] enforces via its idempotency
-step. The heavy/Edge/Flatpak tasks are skipped in containers anyway.
+## Toggles
+`packages_heavy`, `packages_flatpak`, `packages_rpmfusion`, see `defaults/main.yml`.

@@ -1,59 +1,23 @@
-# Role: dotfiles (GNU Stow)
+# Roles: dotfiles and shell
 
-**Summary:** Uses GNU Stow to symlink the repo's `zsh`, `nvim`, and `fastfetch`
-packages into `$HOME`, after backing up any conflicting real files.
+## dotfiles
+Each directory in `stow/` mirrors `$HOME`. The role runs:
 
-**Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`ansible/roles/dotfiles/tasks/main.yml`)
-**Related:** [[ansible-architecture]], [[zsh-configuration]], [[neovim-configuration]], [[fastfetch-configuration]], [[testing-molecule]]
-**Last updated:** 2026-07-13
-
----
-
-## The Stow model
-
-Each top-level folder (`zsh/`, `nvim/`, `fastfetch/`) mirrors the directory layout
-starting at `$HOME`. Stow creates symlinks so the file exists once (in the repo) but
-appears where the program expects it:
-
-```
-~/dotfiles/nvim/.config/nvim/init.lua  →  ~/.config/nvim/init.lua
-~/dotfiles/zsh/.zshrc                  →  ~/.zshrc
-~/dotfiles/zsh/.oh-my-zsh/custom/      →  ~/.oh-my-zsh/custom/
+```bash
+stow --no-folding --verbose --ignore=.DS_Store --dir=<repo>/stow --target=$HOME <package>
 ```
 
-Everything is then versioned by Git from one place.
+`--no-folding` is required: without it stow links whole directories, and applications then write into the repo.
 
-## Task sequence
+Packages: `zsh`, `nvim`, `fastfetch`, and `backgrounds` on desktop. Real `.zshrc`, `.zprofile` and `.p10k.zsh` files are moved to `*.bak` first, because stow refuses to replace them.
 
-1. **Back up Oh-My-Zsh custom files** that would block stow — moves
-   `aliases.zsh`, `startupcode.zsh`, `example.zsh` to `.bak`
-   (using `command` with `removes:` so it only runs if the file exists;
-   `ignore_errors: true`). Oh-My-Zsh's installer drops its own versions of these.
-2. **Back up `~/.zshrc`** — stat first; if it exists *and is not already a symlink*,
-   move it to `.zshrc.bak`. (Avoids clobbering an existing real config; re-runs are safe.)
-3. **Ensure `~/.config` exists** (`file: state=directory mode=0755`) so stow can put
-   links inside it.
-4. **Stow each package:**
-   ```bash
-   stow --verbose --target=$HOME <package>   # for zsh, nvim, fastfetch
-   ```
-   `--verbose` makes stow print `LINK:`/`UNLINK:` lines only when it actually
-   changes something; `changed_when: "'LINK:' in stow_result.stderr or 'UNLINK:' in
-   stow_result.stderr"` uses that output so Ansible reports idempotent re-runs as
-   unchanged ([[testing-molecule]]'s idempotency check relies on this). This
-   replaced an earlier `--restow` + `changed_when: true` approach, which always
-   reported "changed" even when nothing moved.
+## shell
+Links `vendor/` into place, since submodules stay outside the stow packages:
 
-## Stowed packages
+| Link | Target |
+|---|---|
+| `~/.oh-my-zsh` | `vendor/ohmyzsh` |
+| `~/.config/zsh/themes/powerlevel10k` | `vendor/powerlevel10k` |
+| `~/.config/zsh/plugins/zsh-autosuggestions` | `vendor/zsh-autosuggestions` |
 
-| Package | Links | Documented in |
-|---------|-------|---------------|
-| `zsh` | `.zshrc` + `.oh-my-zsh/custom/*` (incl. vendored Powerlevel10k, plugins) | [[zsh-configuration]] |
-| `nvim` | `.config/nvim/` | [[neovim-configuration]] |
-| `fastfetch` | `.config/fastfetch/` | [[fastfetch-configuration]] |
-
-## Gotcha (from TESTING.md)
-
-If a real file already sits where a symlink should go, stow errors with
-`existing target is neither a link nor a directory`. The backup tasks above are meant
-to prevent this; manual fix is to delete the stray file and `stow --restow` again.
+It also sets `/bin/zsh` as login shell. See [[zsh-configuration]].
