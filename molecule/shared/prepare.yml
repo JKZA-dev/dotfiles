@@ -1,0 +1,29 @@
+---
+- name: Prepare container
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_user: root # tester does not exist yet
+  tasks:
+    - name: Install Ansible requirements
+      ansible.builtin.raw: dnf install -y python3 python3-libdnf5 sudo
+      changed_when: true
+
+    - name: Create test user
+      ansible.builtin.user:
+        name: tester
+
+    - name: Allow passwordless sudo
+      ansible.builtin.copy:
+        content: "tester ALL=(ALL) NOPASSWD: ALL\n"
+        dest: /etc/sudoers.d/tester
+        mode: "0440"
+
+    - name: Copy repository
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../{{ item }}"
+        dest: /home/tester/dotfiles/
+        owner: tester
+        group: tester
+        mode: preserve
+      loop: [ansible, kde, stow, vendor]

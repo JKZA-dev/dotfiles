@@ -1,49 +1,10 @@
 ---
-# Molecule-Konfiguration – Desktop-Szenario
-#
-# Testet das vollständige Desktop-Setup:
-#   - Alle Basis-Pakete (zsh, neovim, btop, fastfetch, ...)
-#   - Desktop-Pakete (gimp, kicad, microsoft-edge)
-#   - ZSH als Standard-Shell
-#   - Dotfiles-Symlinks (nvim, fastfetch, zshrc)
-#   - SSH-Verzeichnis
-#   - Hintergrundbilder-Verzeichnis
-#
-# Ausführen: molecule test -s desktop
-
-dependency:
-  name: galaxy
-
-driver:
-  name: podman
-
 platforms:
   - name: fedora-desktop
-    image: quay.io/fedora/fedora:latest
+    image: quay.io/fedora/fedora:44
     pre_build_image: true
-    privileged: true
-    capabilities:
-      - SYS_ADMIN
-
 provisioner:
-  name: ansible
-  config_options:
-    defaults:
-      interpreter_python: auto_silent
-      result_format: yaml
   inventory:
     group_vars:
       all:
         install_mode: desktop
-        molecule_test: true
-  playbooks:
-    prepare: ../default/prepare.yml
-    converge: ../default/converge.yml
-    verify: ../default/verify.yml
-  env:
-    ANSIBLE_FORCE_COLOR: "true"
-    PY_COLORS: "1"
-  log: true
-
-verifier:
-  name: ansible

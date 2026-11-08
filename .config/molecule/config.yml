@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+  options:
+    requirements-file: ${MOLECULE_PROJECT_DIRECTORY}/ansible/requirements.yml
+driver:
+  name: podman
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      interpreter_python: auto_silent
+      callback_result_format: yaml
+  playbooks:
+    prepare: ../shared/prepare.yml
+    converge: ../shared/converge.yml
+    verify: ../shared/verify.yml
+  inventory:
+    group_vars:
+      all:
+        ansible_user: tester
+        dotfiles_dir: /home/tester/dotfiles
+        gaming: false
+        packages_heavy: false
+        packages_flatpak: false
+        neovim_bootstrap: false
+verifier:
+  name: ansible
