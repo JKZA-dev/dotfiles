@@ -14,40 +14,33 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+-- /usr/bin/java is only a stub on macOS.
+local function has_jdk()
+  if vim.fn.has("mac") == 1 then
+    return vim.fn.isdirectory("/opt/homebrew/opt/openjdk") == 1
+  end
+  return vim.fn.executable("java") == 1
+end
+
+local function has_own_plugins()
+  return #vim.api.nvim_get_runtime_file("lua/plugins/*.lua", false) > 0
+end
+
 require("lazy").setup({
   spec = {
-    -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
-    -- import/override with your plugins
-    { import = "plugins" },
+    -- All other extras live in lazyvim.json; these two need a JDK.
+    { import = "lazyvim.plugins.extras.lang.java", cond = has_jdk },
+    { import = "lazyvim.plugins.extras.lang.kotlin", cond = has_jdk },
+    { "mfussenegger/nvim-jdtls", enabled = has_jdk }, -- keeps its lazy-lock.json entry without a JDK
+    { import = "plugins", cond = has_own_plugins },
   },
-  defaults = {
-    -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
-    -- If you know what you're doing, you can set this to `true` to have all your custom plugins lazy-loaded by default.
-    lazy = false,
-    -- It's recommended to leave version=false for now, since a lot the plugin that support versioning,
-    -- have outdated releases, which may break your Neovim install.
-    version = false, -- always use the latest git commit
-    -- version = "*", -- try installing the latest stable version for plugins that support semver
-  },
+  -- Set during the first headless install, which would rewrite the lockfile with partial data.
+  lockfile = vim.env.LAZY_LOCKFILE,
+  defaults = { lazy = false, version = false },
   install = { colorscheme = { "tokyonight", "habamax" } },
-  checker = {
-    enabled = true, -- check for plugin updates periodically
-    notify = false, -- notify on update
-  }, -- automatically check for plugin updates
+  checker = { enabled = true, notify = false },
   performance = {
-    rtp = {
-      -- disable some rtp plugins
-      disabled_plugins = {
-        "gzip",
-        -- "matchit",
-        -- "matchparen",
-        -- "netrwPlugin",
-        "tarPlugin",
-        "tohtml",
-        "tutor",
-        "zipPlugin",
-      },
-    },
+    rtp = { disabled_plugins = { "gzip", "tarPlugin", "tohtml", "tutor", "zipPlugin" } },
   },
 })
