@@ -4,7 +4,7 @@
 
 | Job | Content |
 |---|---|
-| `lint` | yamllint, `ansible-lint` with the production profile, shellcheck over all tracked `*.sh` |
+| `lint` | yamllint, `ansible-lint` with the production profile, shellcheck over tracked `*.sh` outside `kde/` |
 | `molecule` | Matrix `desktop`, `server`, see [[testing-molecule]] |
 | `macos` | Playbook in server mode on `macos-latest`, then a zsh start that must not write to stderr |
 

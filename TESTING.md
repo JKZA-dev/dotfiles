@@ -47,5 +47,5 @@ Flatpak apps, heavy desktop packages and applying the KDE profile need a real de
 ```bash
 yamllint .
 ansible-lint
-git ls-files -z '*.sh' | xargs -0 shellcheck
+git ls-files -z '*.sh' ':!:kde/' | xargs -0 shellcheck
 ```

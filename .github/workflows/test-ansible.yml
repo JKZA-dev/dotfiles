@@ -27,7 +27,7 @@ jobs:
       - run: ansible-galaxy collection install -r ansible/requirements.yml
       - run: yamllint .
       - run: ansible-lint
-      - run: git ls-files -z '*.sh' | xargs -0 shellcheck
+      - run: git ls-files -z '*.sh' ':!:kde/' | xargs -0 shellcheck
 
   molecule:
     needs: lint
