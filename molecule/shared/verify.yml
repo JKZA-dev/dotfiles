@@ -4,7 +4,7 @@
   vars:
     verify_home: "{{ ansible_facts.user_dir }}"
     verify_is_desktop: "{{ install_mode == 'desktop' }}"
-    verify_base_packages: [zsh, neovim, btop, fastfetch, git, git-lfs, stow, tmux, sl, speedtest-cli, ripgrep, nodejs]
+    verify_base_packages: [zsh, neovim, btop, fastfetch, git, git-lfs, stow, tmux, sl, speedtest-cli, ripgrep]
     verify_desktop_packages: [gimp]
     verify_links:
       - .zshrc
@@ -74,6 +74,7 @@
     - name: Stat wallpaper
       ansible.builtin.stat:
         path: "{{ verify_home }}/Pictures/Hacknet/Rain.png"
+        follow: true # size of the image, not of the symlink
       register: verify_wallpaper
 
     - name: Check wallpaper matches the mode

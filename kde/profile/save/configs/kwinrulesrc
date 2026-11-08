@@ -1,11 +1,24 @@
+[093684aa-a055-4fd0-8703-f101f19038eb]
+Description=Startup Tiling w/o Title
+Enabled=false
+maximizevert=true
+position=0,0
+positionrule=4
+types=1
+
+[3f8db0f8-e218-439b-983f-a69d37ac3dbb]
+Description=No Titlebar
+decorationpolicy=none
+decorationpolicyrule=2
+types=33
+
 [General]
-count=1
-rules=dbe16bd7-b39a-4136-93e6-66826471f2c3
+Order=3f8db0f8-e218-439b-983f-a69d37ac3dbb,dbe16bd7-b39a-4136-93e6-66826471f2c3,093684aa-a055-4fd0-8703-f101f19038eb
 
 [dbe16bd7-b39a-4136-93e6-66826471f2c3]
 Description=Window settings for org.kde.konsole
-noborder=true
-noborderrule=2
+decorationpolicy=none
+decorationpolicyrule=2
 title=~ : zsh — Konsole
 types=1
 wmclass=konsole org.kde.konsole

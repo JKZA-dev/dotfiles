@@ -3,10 +3,10 @@ ChangeSelectionColor=
 Color=56,56,56
 ColorAmount=0
 ColorEffect=0
-ContrastAmount=0.65
+ContrastAmount=0.6000000000000001
 ContrastEffect=1
 Enable=
-IntensityAmount=0.1
+IntensityAmount=0.2
 IntensityEffect=2
 
 [ColorEffects:Inactive]
@@ -106,7 +106,7 @@ ForegroundVisited=155,89,182
 
 [Colors:View]
 BackgroundAlternate=247,247,247
-BackgroundNormal=255,255,255
+BackgroundNormal=245,245,245
 DecorationFocus=61,174,233
 DecorationHover=61,174,233
 ForegroundActive=61,174,233
@@ -120,7 +120,7 @@ ForegroundVisited=155,89,182
 
 [Colors:Window]
 BackgroundAlternate=227,229,231
-BackgroundNormal=239,240,241
+BackgroundNormal=228,229,230
 DecorationFocus=61,174,233
 DecorationHover=61,174,233
 ForegroundActive=61,174,233
@@ -138,27 +138,34 @@ History Items[$e]=file:$HOME/usbtmp,file:$HOME,file:///mnt/Users/Josua/My Drive/
 Splitter State=\x00\x00\x00\xff\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x8c\x00\x00\x02\xa8\x00\xff\xff\xff\xff\x01\x00\x00\x00\x01\x00
 
 [General]
-ColorSchemeHash=9f63c7711a13123582e720791ea0f8c0172977d2
+BrowserApplication=microsoft-edge.desktop
+ColorSchemeHash=c77247aa775be6c51c9abbc44951be02552ae115
 
 [KDE]
-LookAndFeelPackage=org.fedoraproject.fedora.desktop
+LookAndFeelPackage=org.kde.breezetwilight.desktop
+contrast=4
+frameContrast=0.2
 
 [KFileDialog Settings]
 Allow Expansion=false
 Automatically select filename extension=true
-Breadcrumb Navigation=true
+Breadcrumb Navigation=false
 Decoration position=2
 Show Full Path=false
 Show Inline Previews=true
 Show Preview=false
 Show Speedbar=true
-Show hidden files=false
+Show hidden files=true
 Sort by=Date
 Sort directories first=true
 Sort hidden files last=false
 Sort reversed=true
 Speedbar Width=140
 View Style=DetailTree
+
+[KScreen]
+ScreenScaleFactors=HDMI-A-1=1;eDP-1=1;
+XwaylandClientsScale=false
 
 [KShortcutsDialog Settings]
 Dialog Size=600,480

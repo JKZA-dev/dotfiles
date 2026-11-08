@@ -90,11 +90,11 @@ Color=255,255,255
 
 [General]
 Anchor=0.5,0.5
-Blur=true
+Blur=false
 ColorRandomization=false
 Description=White on Black
 FillStyle=Tile
-Opacity=1
+Opacity=0.8
 Wallpaper=__HOME__/Pictures/Hacknet/Starfield0 (modded).png
 WallpaperFlipType=NoFlip
-WallpaperOpacity=1
+WallpaperOpacity=0.4

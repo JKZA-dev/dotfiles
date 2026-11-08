@@ -1,5 +1,7 @@
 [Common]
-OutlineIntensity=OutlineLow
+OutlineEnabled=false
+OutlineIntensity=OutlineOff
+RoundedCorners=false
 ShadowColor=139,139,139
 ShadowSize=ShadowSmall
 

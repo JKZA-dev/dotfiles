@@ -8,22 +8,34 @@ FakeBlur=true
 WindowClasses=class1\nclass2\nclass3\nkonsole
 
 [Effect-overview]
-BorderActivate=2
+BorderActivate=9
 
 [ElectricBorders]
 BottomLeft=ApplicationLauncher
-BottomRight=ShowDesktop
-
-[MouseBindings]
-CommandActiveTitlebar2=Minimize
-CommandTitlebarWheel=Change Opacity
 
 [Plugins]
 blurEnabled=true
+krohnkiteEnabled=true
+kwin4_effect_geometry_changeEnabled=true
+slidebackEnabled=true
 translucencyEnabled=true
 
-[Tiling]
-padding=4
+[Round-Corners]
+DisableRoundTile=false
+MarkWindowsTranslucent=false
+Squircleness=0.7
+
+[Script-krohnkite]
+logFilteredWindows=true
+logNewWindows=true
+logUnmanagedWindows=true
+logging=true
+noTileBorder=true
+screenGapBetween=10
+screenGapBottom=4
+screenGapLeft=4
+screenGapRight=4
+screenGapTop=4
 
 [Tiling][417c9c8b-2394-59d9-ac50-96847d89697e]
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -37,15 +49,28 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 [Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][41d92930-e196-4ad3-ac8a-949d8190109a]
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][626cd672-1930-473c-94f0-4998ca0b0fb3]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][9190245d-3b08-40dd-9a47-b835685d1340]
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][bcd55878-0d83-4b88-a9ae-b91054b2a997]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][dba105b9-5ef0-4723-b43c-93652e0c94a5]
+padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][dc633066-bd4d-4d46-aaf7-5c072b5abe16]
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
-[Windows]
-BorderlessMaximizedWindows=true
-Placement=Smart
+[Tiling][8df3513d-5a0c-4af7-977f-d8831e42c72b][f81ce298-d71a-4a4e-bca2-7911960679cf]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.6151041666666669},{"layoutDirection":"floating","tiles":[{"height":0.21851851851851822,"width":0.21406249999999882,"x":0.7859375000000012,"y":0.2657407407407406}],"width":0.3848958333333331}]}
 
-[Xwayland]
-Scale=1.3
+[Windows]
+ActivationDesktopPolicy=BringToCurrentDesktop
+BorderlessMaximizedWindows=true

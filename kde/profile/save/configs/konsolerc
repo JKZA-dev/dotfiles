@@ -4,8 +4,14 @@ DefaultProfile=Profile 1.profile
 [General]
 ConfigVersion=1
 
+[KonsoleWindow]
+RemoveWindowTitleBarAndFrame=true
+
 [SaveHistory Settings]
 Recent URLs[$e]=file:$HOME/Documents
+
+[TabBar]
+ExpandTabWidth=true
 
 [UiSettings]
 ColorScheme=BreezeDark
