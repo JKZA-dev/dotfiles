@@ -9,7 +9,7 @@
 | `gaming` | `false` | Bootstrap |
 | `dotfiles_dir` | `~/dotfiles` | Bootstrap |
 
-Shared defaults live in `group_vars/all.yml`. Never define them as play `vars`: those would override inventory values and break [[testing-molecule]].
+Shared defaults live in `inventory/group_vars/all.yml`. Never define them as play `vars` or in `group_vars/` next to `setup.yml`: both override the values set by [[testing-molecule]].
 
 Role options use the role name as a prefix and live in `defaults/main.yml`. Tests switch off expensive parts with feature toggles rather than a test flag.
 
