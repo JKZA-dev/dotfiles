@@ -1,0 +1,44 @@
+---
+packages_native: # Homebrew formulae
+  base:
+    - git
+    - git-lfs
+    - stow
+    - btop
+    - fastfetch
+    - neovim
+    - tmux
+    - jq
+    - yt-dlp
+    - cmatrix
+    - lolcat
+    - sl
+    - speedtest-cli
+    - ninja
+    - pipx
+    # Neovim toolchain
+    - ripgrep
+    - fd
+    - fzf
+    - tree-sitter-cli
+    - node
+    - gh
+  desktop: []
+  desktop_heavy:
+    - openjdk # jdtls, Kotlin LSP
+  gaming: []
+
+packages_apps: # Homebrew casks
+  base: []
+  desktop:
+    - zen
+    - element
+    - whatsapp
+    - discord
+    - font-jetbrains-mono-nerd-font
+  desktop_heavy:
+    - gimp
+    - kicad
+  gaming:
+    - steam
+    - prismlauncher

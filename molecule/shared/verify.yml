@@ -1,0 +1,103 @@
+---
+- name: Verify setup
+  hosts: all
+  vars:
+    verify_home: "{{ ansible_facts.user_dir }}"
+    verify_is_desktop: "{{ install_mode == 'desktop' }}"
+    verify_base_packages: [zsh, neovim, btop, fastfetch, git, git-lfs, stow, tmux, sl, speedtest-cli, ripgrep]
+    verify_desktop_packages: [gimp]
+    verify_links:
+      - .zshrc
+      - .zprofile
+      - .config/zsh/aliases.zsh
+      - .config/zsh/device.zsh
+      - .config/zsh/startupcode.zsh
+      - .config/nvim/init.lua
+      - .config/fastfetch/config.jsonc
+      - .oh-my-zsh
+      - .config/zsh/themes/powerlevel10k
+      - .config/zsh/plugins/zsh-autosuggestions
+  tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+
+    - name: Check base packages
+      ansible.builtin.assert:
+        that: verify_base_packages | difference(ansible_facts.packages) | length == 0
+        fail_msg: "Missing: {{ verify_base_packages | difference(ansible_facts.packages) }}"
+
+    - name: Check desktop packages match the mode
+      ansible.builtin.assert:
+        that: (item in ansible_facts.packages) == verify_is_desktop
+        fail_msg: "{{ item }} does not match mode {{ install_mode }}"
+      loop: "{{ verify_desktop_packages }}"
+
+    - name: Read login shell
+      ansible.builtin.getent:
+        database: passwd
+        key: tester
+
+    - name: Check login shell
+      ansible.builtin.assert:
+        that: ansible_facts.getent_passwd.tester[-1] == '/bin/zsh'
+
+    - name: Stat managed links
+      ansible.builtin.stat:
+        path: "{{ verify_home }}/{{ item }}"
+      loop: "{{ verify_links }}"
+      register: verify_stats
+
+    - name: Check links point into the repository
+      ansible.builtin.assert:
+        that:
+          - item.stat.islnk | default(false)
+          - item.stat.lnk_source is match(dotfiles_dir)
+        fail_msg: "{{ item.item }} is not linked into {{ dotfiles_dir }}"
+        quiet: true
+      loop: "{{ verify_stats.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Stat ~/.ssh
+      ansible.builtin.stat:
+        path: "{{ verify_home }}/.ssh"
+      register: verify_ssh
+
+    - name: Check ~/.ssh permissions
+      ansible.builtin.assert:
+        that: verify_ssh.stat.mode == '0700'
+
+    - name: Check known hosts
+      ansible.builtin.command: ssh-keygen -F gitlab.fachschaften.org -f {{ verify_home }}/.ssh/known_hosts
+      changed_when: false
+
+    - name: Stat wallpaper
+      ansible.builtin.stat:
+        path: "{{ verify_home }}/Pictures/Hacknet/Rain.png"
+        follow: true # size of the image, not of the symlink
+      register: verify_wallpaper
+
+    - name: Check wallpaper matches the mode
+      ansible.builtin.assert:
+        that: >-
+          (verify_wallpaper.stat.size | default(0) > 1024)
+          if verify_is_desktop else (not verify_wallpaper.stat.exists)
+        fail_msg: Wallpaper missing, a Git LFS pointer, or present in server mode
+
+    - name: Check Neovim plugins
+      ansible.builtin.command: test -d {{ verify_home }}/.local/share/nvim/lazy/LazyVim
+      changed_when: false
+      when: neovim_bootstrap
+
+    - name: Check KDE setup
+      when: verify_is_desktop
+      block:
+        - name: Check splash configuration
+          ansible.builtin.command: >-
+            grep -q 'themeColor: "#00f000"'
+            {{ verify_home }}/.local/share/plasma/look-and-feel/fastfetch-splash/contents/splash/Splash.qml
+          changed_when: false
+
+        - name: Check konsave profile
+          ansible.builtin.command: test -d {{ verify_home }}/.config/konsave/profiles/JKZA-KDE-Workstation
+          changed_when: false

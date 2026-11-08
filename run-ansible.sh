@@ -1,260 +1,137 @@
-#!/bin/bash
-#
-# Bootstrap-Script für dein Fedora Setup.
-#
-# Benutzung LOKAL:
+#!/usr/bin/env bash
+# Bootstraps this dotfiles setup on Fedora or macOS.
 #   curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash
-#
-# Benutzung per SSH:
-#   ssh benutzer@neuer-pc 'curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash'
-#
+#   ssh -t user@host 'curl -fsSL https://raw.githubusercontent.com/JKZA-dev/dotfiles/main/run-ansible.sh | bash'
+set -euo pipefail
 
-# Farben
-ROT='\033[0;31m'
-GRUEN='\033[0;32m'
-GELB='\033[1;33m'
-BLAU='\033[0;34m'
-RESET='\033[0m'
+readonly REPO_SLUG=JKZA-dev/dotfiles
+readonly DOTFILES_DIR=${DOTFILES_DIR:-$HOME/dotfiles}
+readonly SSH_KEY=$HOME/.ssh/id_ed25519
+OS=$(uname -s)
+readonly OS
 
-info()    { echo -e "${BLAU}[INFO]${RESET} $1"; }
-erfolg()  { echo -e "${GRUEN}[OK]${RESET} $1"; }
-fehler()  { echo -e "${ROT}[FEHLER]${RESET} $1"; exit 1; }
+log() { printf '\033[0;34m[INFO]\033[0m %s\n' "$1"; }
+ok() { printf '\033[0;32m[OK]\033[0m %s\n' "$1"; }
+die() {
+    printf '\033[0;31m[ERROR]\033[0m %s\n' "$1" >&2
+    exit 1
+}
 
-DOTFILES_DIR="$HOME/dotfiles"
-REPO_URL="https://github.com/JKZA-dev/dotfiles.git"
-
-echo ""
-echo -e "${GELB}  Fedora Workstation/Server Setup${RESET}"
-echo ""
-
-
-# Schritt 1: Installationsmodus wählen
-
-echo -e "${GELB}Welches Setup möchtest du einrichten?${RESET}"
-echo ""
-echo "  1) Desktop  – Fedora KDE (Pakete, ZSH, Dotfiles, KDE-Profil, Wallpaper, ...)"
-echo "  2) Server   – Fedora Server (Pakete, ZSH, Dotfiles, SSH – kein KDE/GUI)"
-echo ""
-
-while true; do
-    read -r -p "Auswahl [1/2]: " auswahl < /dev/tty
-    case $auswahl in
-        1) INSTALL_MODE="desktop"; break ;;
-        2) INSTALL_MODE="server";  break ;;
-        *) echo "Bitte 1 oder 2 eingeben." ;;
-    esac
-done
-
-echo ""
-erfolg "Modus: ${INSTALL_MODE}"
-echo ""
-
-
-# Schritt 1b: Gaming-Ready? (nur im Desktop-Modus)
-
-GAME_READY=false
-
-if [ "$INSTALL_MODE" = "desktop" ]; then
-    echo -e "${GELB}Gaming-Ready einrichten?${RESET}"
-    echo ""
-    echo -e "  Installiert zusätzlich Steam (Paket) und Prism Launcher (Flatpak)."
-    echo ""
-
-    while true; do
-        read -r -p "Gaming-Pakete installieren? [j/n]: " gaming_auswahl < /dev/tty
-        case $gaming_auswahl in
-            [jJ]) GAME_READY=true;  break ;;
-            [nN]) GAME_READY=false; break ;;
-            *) echo "Bitte j oder n eingeben." ;;
+ask_yn() {
+    local reply
+    while read -r -p "$1 [y/n]: " reply </dev/tty; do
+        case $reply in
+            [yY]) return 0 ;;
+            [nN]) return 1 ;;
         esac
     done
+    die "Could not read from the terminal."
+}
 
-    echo ""
-    if [ "$GAME_READY" = true ]; then
-        erfolg "Gaming-Pakete werden installiert (Steam, Prism Launcher)."
-    else
-        info "Gaming-Pakete werden übersprungen."
+ask_mode() {
+    local reply
+    while read -r -p "Setup mode: [d]esktop or [s]erver: " reply </dev/tty; do
+        case $reply in
+            [dD]) INSTALL_MODE=desktop && return ;;
+            [sS]) INSTALL_MODE=server && return ;;
+        esac
+    done
+    die "Could not read from the terminal."
+}
+
+ask_questions() {
+    GAMING=false KDE_APPLY=false GENERATE_KEY=false SWITCH_REMOTE=false
+
+    ask_mode
+    if [[ $INSTALL_MODE == desktop ]]; then
+        if ask_yn "Install gaming packages (Steam, Prism Launcher)?"; then GAMING=true; fi
+        if [[ $OS == Linux ]] && ask_yn "Apply the KDE profile (replaces the current layout)?"; then KDE_APPLY=true; fi
     fi
-    echo ""
-fi
+    [[ -f $SSH_KEY ]] && log "$SSH_KEY exists; ssh-keygen asks before overwriting it."
+    if ask_yn "Generate an SSH key?"; then GENERATE_KEY=true; fi
+    if ask_yn "Switch the dotfiles remote from HTTPS to SSH?"; then SWITCH_REMOTE=true; fi
+}
 
+install_homebrew() {
+    command -v brew >/dev/null && return
+    [[ -x /opt/homebrew/bin/brew ]] ||
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+}
 
-# Schritt 2: SSH-Key Entscheidung
-
-echo -e "${GELB}SSH-Key einrichten${RESET}"
-echo ""
-
-if [ -f "$HOME/.ssh/id_ed25519" ]; then
-    echo -e "  ${GELB}[!]${RESET} Es ist bereits ein SSH-Key vorhanden (~/.ssh/id_ed25519)"
-    echo -e "      Ein neuer Key würde den alten ${ROT}überschreiben${RESET}."
-else
-    echo -e "  Kein SSH-Key gefunden – es kann ein neuer ed25519-Key generiert werden."
-fi
-
-echo ""
-
-while true; do
-    read -r -p "SSH-Key jetzt generieren? [j/n]: " ssh_auswahl < /dev/tty
-    case $ssh_auswahl in
-        [jJ]) GEN_SSH_KEY=true;  break ;;
-        [nN]) GEN_SSH_KEY=false; break ;;
-        *) echo "Bitte j oder n eingeben." ;;
+install_prerequisites() {
+    log "Installing git, git-lfs and Ansible..."
+    case $OS in
+        Linux)
+            command -v dnf >/dev/null || die "Only Fedora is supported on Linux."
+            sudo dnf install -y git git-lfs ansible
+            ;;
+        Darwin)
+            install_homebrew
+            brew install git git-lfs ansible
+            ;;
+        *) die "Unsupported OS: $OS" ;;
     esac
-done
+    git lfs install >/dev/null
+}
 
-echo ""
-if [ "$GEN_SSH_KEY" = true ]; then
-    erfolg "SSH-Key wird nach dem Setup generiert."
-else
-    info "SSH-Key Generierung übersprungen."
-fi
-echo ""
-
-
-# Schritt 2b: Dotfiles-Repo auf SSH umstellen?
-
-echo -e "${GELB}Dotfiles-Repo auf SSH umstellen${RESET}"
-echo ""
-echo -e "  Soll das geklonte dotfiles-Repo von HTTPS auf SSH umgestellt werden?"
-echo -e "  (Ermöglicht das direkte Mitwirken am Repo per SSH-Authentifizierung)"
-echo ""
-
-while true; do
-    read -r -p "Repo auf SSH umstellen? [j/n]: " ssh_remote_auswahl < /dev/tty
-    case $ssh_remote_auswahl in
-        [jJ]) CHANGE_TO_SSH=true;  break ;;
-        [nN]) CHANGE_TO_SSH=false; break ;;
-        *) echo "Bitte j oder n eingeben." ;;
-    esac
-done
-
-echo ""
-if [ "$CHANGE_TO_SSH" = true ]; then
-    erfolg "Repo wird nach dem Setup auf SSH umgestellt."
-else
-    info "Repo bleibt auf HTTPS."
-fi
-echo ""
-
-
-# Schritt 3: Git installieren (falls nötig)
-
-if ! command -v git &> /dev/null; then
-    info "Git wird installiert..."
-    sudo dnf install -y git || fehler "Git konnte nicht installiert werden!"
-fi
-erfolg "Git ist bereit"
-
-
-# Schritt 4: Ansible installieren (falls nötig)
-
-if ! command -v ansible &> /dev/null; then
-    info "Ansible wird installiert..."
-    sudo dnf install -y ansible || fehler "Ansible konnte nicht installiert werden!"
-fi
-erfolg "Ansible ist bereit"
-
-
-# Schritt 5: Dotfiles-Repo klonen (falls nötig)
-
-if [ ! -d "$DOTFILES_DIR" ]; then
-    info "Klone dotfiles-Repository..."
-    git clone "$REPO_URL" "$DOTFILES_DIR" || fehler "Repository konnte nicht geklont werden!"
-else
-    erfolg "dotfiles-Repository ist bereits vorhanden"
-fi
-
-
-# Schritt 6: Ansible Collections installieren
-
-info "Installiere Ansible Collections..."
-ansible-galaxy collection install -r "$DOTFILES_DIR/ansible/requirements.yml" \
-    || fehler "Ansible Collections konnten nicht installiert werden!"
-erfolg "Ansible Collections sind bereit"
-
-
-# Schritt 7: Ansible Playbook ausführen
-# --extra-vars übergibt den gewählten Modus an Ansible
-
-info "Starte Ansible Playbook (Modus: ${INSTALL_MODE})..."
-echo ""
-
-ansible-playbook \
-    -i "$DOTFILES_DIR/ansible/inventory.ini" \
-    "$DOTFILES_DIR/ansible/setup.yml" \
-    --extra-vars "install_mode=${INSTALL_MODE} game_ready=${GAME_READY}" \
-    --ask-become-pass \
-    || fehler "Playbook fehlgeschlagen! Siehe Ausgabe oben."
-
-
-# Schritt 8: SSH-Key generieren (interaktiv, mit eigenem Passphrase)
-
-if [ "$GEN_SSH_KEY" = true ]; then
-    bash "$DOTFILES_DIR/ansible/roles/ssh_config/tasks/generate_ssh_key.sh"
-fi
-
-
-# Schritt 9: Dotfiles-Repo auf SSH umstellen
-
-if [ "$CHANGE_TO_SSH" = true ]; then
-    echo ""
-    echo -e "${GELB}Dotfiles-Repo auf SSH umstellen${RESET}"
-    echo ""
-
-    if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
-        echo -e "  ${GELB}[!]${RESET} Kein SSH-Key gefunden – für den Repo-Wechsel wird ein Key benötigt."
-        echo ""
-        while true; do
-            read -r -p "SSH-Key jetzt generieren? [j/n]: " retry_ssh < /dev/tty
-            case $retry_ssh in
-                [jJ])
-                    bash "$DOTFILES_DIR/ansible/roles/ssh_config/tasks/generate_ssh_key.sh"
-                    break ;;
-                [nN])
-                    info "SSH-Key Generierung übersprungen. Repo bleibt auf HTTPS."
-                    break ;;
-                *) echo "Bitte j oder n eingeben." ;;
-            esac
-        done
-    fi
-
-    if [ -f "$HOME/.ssh/id_ed25519" ]; then
-        echo ""
-        echo -e "  ${GELB}Schritt 1: Dein öffentlicher SSH-Key${RESET}"
-        echo ""
-        cat "$HOME/.ssh/id_ed25519.pub"
-        echo ""
-        echo -e "  ${GELB}Schritt 2: SSH-Key zu GitHub hinzufügen${RESET}"
-        echo -e "  Öffne: https://github.com/settings/keys"
-        echo -e "  Klicke auf 'New SSH key' und füge den obigen Key ein."
-        echo ""
-        read -r -p "  Drücke [Enter], sobald du den Key zu GitHub hinzugefügt hast..." < /dev/tty
-        echo ""
-        echo -e "  ${GELB}Schritt 3: Remote URL auf SSH umstellen${RESET}"
-        git -C "$DOTFILES_DIR" remote set-url origin git@github.com:JKZA-dev/dotfiles.git
-        echo ""
-        echo -e "  ${GELB}Schritt 4: Remote URL überprüfen${RESET}"
-        git -C "$DOTFILES_DIR" remote -v
-        echo ""
-        erfolg "Repo wurde auf SSH umgestellt!"
+sync_repo() {
+    if [[ -e $DOTFILES_DIR/.git ]]; then
+        log "Updating $DOTFILES_DIR..."
+        git -C "$DOTFILES_DIR" pull --ff-only
+        git -C "$DOTFILES_DIR" submodule update --init
     else
-        info "Kein SSH-Key vorhanden – Repo bleibt auf HTTPS."
+        log "Cloning into $DOTFILES_DIR..."
+        git clone --recurse-submodules "https://github.com/$REPO_SLUG.git" "$DOTFILES_DIR"
     fi
-fi
+}
 
+run_playbook() {
+    local extra_vars
+    printf -v extra_vars '{"install_mode":"%s","gaming":%s,"kde_apply_profile":%s,"dotfiles_dir":"%s"}' \
+        "$INSTALL_MODE" "$GAMING" "$KDE_APPLY" "$DOTFILES_DIR"
 
-# Fertig!
+    cd "$DOTFILES_DIR/ansible"
+    ansible-galaxy collection install -r requirements.yml
+    ansible-playbook setup.yml --ask-become-pass --extra-vars "$extra_vars"
+}
 
-echo ""
-echo -e "${GRUEN}  Setup abgeschlossen!${RESET}"
-echo ""
-echo "  Nächste Schritte:"
+generate_ssh_key() {
+    log "Starting ssh-keygen. The passphrase is neither shown nor stored."
+    ssh-keygen -t ed25519 -C "$USER@$(hostname)" -f "$SSH_KEY"
+    ok "SSH key generated: $SSH_KEY"
+}
 
-if [ "$INSTALL_MODE" = "desktop" ]; then
-    echo "    1. Ausloggen/einloggen (damit ZSH + KDE-Profil aktiv wird)"
-else
-    echo "    1. Ausloggen/einloggen (damit ZSH aktiv wird)"
-fi
+switch_remote_to_ssh() {
+    if [[ ! -f $SSH_KEY ]]; then
+        ask_yn "No SSH key found. Generate one now?" || {
+            log "No SSH key; the remote stays on HTTPS."
+            return
+        }
+        generate_ssh_key
+    fi
 
-echo ""
-erfolg "Viel Spaß mit deinem neuen System! JKZA"
+    cat "$SSH_KEY.pub"
+    log "Add the key above at https://github.com/settings/keys"
+    read -r -p "Press Enter when done..." </dev/tty
+
+    git -C "$DOTFILES_DIR" remote set-url origin "git@github.com:$REPO_SLUG.git"
+    git -C "$DOTFILES_DIR" remote -v
+    ok "Remote switched to SSH."
+}
+
+main() {
+    { : </dev/tty; } 2>/dev/null || die "This script is interactive and needs a TTY. Over SSH, use: ssh -t"
+
+    ask_questions
+    install_prerequisites
+    sync_repo
+    run_playbook
+
+    if [[ $GENERATE_KEY == true ]]; then generate_ssh_key; fi
+    if [[ $SWITCH_REMOTE == true ]]; then switch_remote_to_ssh; fi
+
+    ok "Setup complete. Log out and back in to activate zsh."
+}
+
+main

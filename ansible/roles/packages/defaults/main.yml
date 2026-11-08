@@ -1,0 +1,5 @@
+---
+packages_heavy: true # desktop_heavy group
+packages_flatpak: true # Flathub and Flatpak apps (Fedora)
+packages_rpmfusion: true
+packages_nerd_font_version: v3.5.1

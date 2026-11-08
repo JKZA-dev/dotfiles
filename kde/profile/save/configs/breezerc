@@ -1,0 +1,10 @@
+[Common]
+OutlineEnabled=false
+OutlineIntensity=OutlineOff
+RoundedCorners=false
+ShadowColor=139,139,139
+ShadowSize=ShadowSmall
+
+[Windeco]
+DrawBackgroundGradient=true
+DrawBorderOnMaximizedWindows=true

@@ -1,38 +1,15 @@
-# Neovim Configuration
+# Neovim
 
-**Summary:** Neovim runs a near-stock LazyVim setup; `init.lua` bootstraps lazy.nvim,
-and the per-user config/keymap/option files are left as empty LazyVim stubs.
+LazyVim, `stow/nvim/.config/nvim/`. Extras are listed in `lazyvim.json`, plugin versions in `lazy-lock.json`.
 
-**Sources:** `raw/2026-06-21-dotfiles-repo-snapshot.md` (`nvim/.config/nvim/init.lua`, `lua/config/lazy.lua`, `options.lua`, `keymaps.lua`, `lazyvim.json`)
-**Related:** [[role-dotfiles-stow]], [[zsh-configuration]]
-**Last updated:** 2026-06-21
+The Java and Kotlin extras are imported in `lua/config/lazy.lua`, only when a JDK exists, so servers skip those tools. `/usr/bin/java` is a stub on macOS, hence the separate check.
 
----
+## Unattended install
+The `neovim` role runs on first setup only:
+1. `nvim --headless +qa` clones plugins. `LAZY_LOCKFILE` points elsewhere because lazy.nvim rewrites the lockfile with partial data during this step.
+2. `Lazy! restore` pins every plugin to `lazy-lock.json`.
+3. `files/sync.lua` installs Mason tools and Tree-sitter parsers and blocks until done.
 
-## Stack
+The toolchain (ripgrep, fd, fzf, gcc, tree-sitter-cli, Node, gh) is in the `base` package group; Java is in `desktop_heavy`. See [[role-packages]].
 
-- **LazyVim** distribution on top of **lazy.nvim** plugin manager.
-- Stowed as the `nvim` package → `~/.config/nvim/` ([[role-dotfiles-stow]]).
-- Launched via the `v` alias and set as `$EDITOR` ([[zsh-configuration]]).
-
-## Bootstrap chain
-
-`init.lua` → `require("config.lazy")`. `lua/config/lazy.lua`:
-- Clones `lazy.nvim` (stable branch) into `stdpath("data")` if missing.
-- Loads LazyVim plugins + a local `plugins` spec, `lazy = false` for custom plugins.
-- `install.colorscheme = { "tokyonight", "habamax" }`.
-- `checker.enabled = true` (periodic update checks, no notify).
-- Disables some built-in rtp plugins (gzip, tarPlugin, tohtml, tutor, zipPlugin).
-
-## Customization state
-
-Essentially **vanilla LazyVim** — the user-extension files are still the default
-stubs:
-- `lua/config/options.lua` — empty (comment only).
-- `lua/config/keymaps.lua` — empty (comment only).
-- `lua/plugins/example.lua` — the LazyVim example file.
-- `lazyvim.json` — no `extras` enabled, `install_version: 8`.
-- `lazy-lock.json` — generated plugin lockfile (not distilled; treat as machine state).
-
-To extend: add options to `options.lua`, keymaps to `keymaps.lua`, plugin specs under
-`lua/plugins/`, or enable LazyVim extras in `lazyvim.json`.
+`claudecode.nvim` needs the `claude` CLI, which this setup does not install.

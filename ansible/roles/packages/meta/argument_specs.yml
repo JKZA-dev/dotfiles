@@ -1,0 +1,12 @@
+---
+argument_specs:
+  main:
+    short_description: Install native packages and apps for the selected mode
+    options:
+      install_mode:
+        type: str
+        required: true
+        choices: [desktop, server]
+      gaming:
+        type: bool
+        required: true

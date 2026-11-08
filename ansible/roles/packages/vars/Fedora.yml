@@ -1,0 +1,62 @@
+---
+packages_native: # dnf
+  base:
+    - zsh
+    - git
+    - git-lfs
+    - stow
+    - curl
+    - zip
+    - unzip
+    - btop
+    - fastfetch
+    - neovim
+    - tmux
+    - jq
+    - yt-dlp
+    - cmatrix
+    - lolcat
+    - sl
+    - speedtest-cli
+    - ninja-build
+    - dnf5-plugins # dnf needs-restarting
+    - pipx
+    - fedora-third-party
+    - fedora-workstation-repositories
+    # Neovim toolchain
+    - ripgrep
+    - fd-find
+    - fzf
+    - gcc
+    - make
+    - tree-sitter-cli
+    - nodejs
+    - npm
+    - gh
+  desktop:
+    - gimp
+    - flatpak
+    - fontconfig
+    - xz
+    - rpmfusion-free-appstream-data
+    - rpmfusion-nonfree-appstream-data
+  desktop_heavy:
+    - kicad
+    - plasma-browser-integration
+    - applet-window-buttons
+    - java-25-openjdk-devel # jdtls, Kotlin LSP
+    # - microsoft-edge-stable # needs the repo in tasks/Fedora.yml
+  gaming:
+    - steam # RPM Fusion nonfree
+
+packages_apps: # Flatpak
+  base: []
+  desktop:
+    - app.zen_browser.zen
+    - im.riot.Riot
+    - com.github.tchx84.Flatseal
+    - com.ktechpit.whatsie
+    - com.discordapp.Discord
+  desktop_heavy: []
+  gaming:
+    - org.prismlauncher.PrismLauncher

@@ -1,27 +1,27 @@
-# CLAUDE.md — Fedora Dotfiles Repo
+# CLAUDE.md
 
-## What this repo is
-Ansible-based dotfiles + system configuration for Fedora. One command (`run-ansible.sh`) bootstraps a fresh machine. Supports two modes: `desktop` (full KDE setup) and `server` (headless).
+Ansible-based dotfiles for Fedora and macOS. `run-ansible.sh` bootstraps a machine.
 
-## Meta-Wiki
-Detailed knowledge lives in `Meta-Wiki/` — read `Meta-Wiki/index.md` first to navigate it. The wiki covers architecture, roles, testing, CI, and config details. Use it instead of re-deriving context from the raw files.
+Detailed docs: read `Meta-Wiki/index.md` first, then the linked `Meta-Wiki/wiki/*.md` pages.
 
-**Query pattern:** Read `Meta-Wiki/index.md` → follow links to relevant `Meta-Wiki/wiki/*.md` pages.
-
-## Key entry points
-| File/Dir | Purpose |
+## Entry points
+| Path | Purpose |
 |---|---|
-| `run-ansible.sh` | Bootstrap script — SSH keygen, remote migration, runs playbook |
+| `run-ansible.sh` | Interactive bootstrap |
 | `ansible/setup.yml` | Main playbook |
-| `ansible/inventory` | Target hosts |
-| `molecule/` | Molecule test scenarios (Podman) |
-| `.github/workflows/` | CI: lint job gates molecule matrix |
+| `ansible/roles/packages/vars/` | Package matrix per OS |
+| `stow/` | Packages linked into `$HOME` |
+| `vendor/` | Pinned submodules; never edit |
+| `kde/profile/` | Unpacked konsave profile |
+| `molecule/`, `.config/molecule/` | Container tests |
 
 ## Roles
-`packages` · `dotfiles` (GNU Stow) · `ssh_config` · `kde` · `backgrounds` · `zsh`
+`packages` · `shell` · `dotfiles` · `neovim` · `ssh` · `kde` (Fedora desktop) · `macos` (macOS desktop)
 
 ## Conventions
-- `install_mode: desktop|server` gates desktop-only tasks
-- `molecule_test: true` gates heavy packages/GUI tasks out of CI containers
-- Stow packages: `zsh/`, `nvim/`, `fastfetch/` → symlinked into `$HOME`
-- `--break-system-packages` used for pip (PEP 668, Fedora)
+- `install_mode: desktop|server` and `gaming: true|false` select package groups once, in `packages/tasks/main.yml`.
+- OS differences live in `vars/<distribution>.yml` and `tasks/<distribution>.yml`, using identical keys.
+- Test exclusions are feature toggles (`packages_heavy`, `packages_flatpak`, `neovim_bootstrap`).
+- Always `stow --no-folding`: directory symlinks would let apps write into the repo.
+- Own configuration goes in `stow/` or role variables, never in `vendor/`.
+- Comments explain why, in English, in one line where possible.

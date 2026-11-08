@@ -1,33 +1,15 @@
-# Haupt-Playbook – Steuert den gesamten Setup-Prozess
-#
-# Unterstützt zwei Modi (über Variable "install_mode"):
-#   - "desktop" → Alles (Pakete, ZSH, Dotfiles, SSH, Wallpaper, KDE)
-#   - "server"  → Nur Terminal-Setup (Pakete, ZSH, Dotfiles, SSH)
-#
-# Der Modus wird vom Bootstrap-Script übergeben:
-#   --extra-vars "install_mode=desktop"
 ---
-- name: "Fedora {{ install_mode | default('desktop') | capitalize }} einrichten"
+- name: Provision workstation
   hosts: all
-  become: false
-
-  vars:
-    dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
-    omz_dir: "{{ ansible_env.HOME }}/.oh-my-zsh"
-    local_user: "{{ ansible_env.USER }}"
-    install_mode: "desktop"   # Standard falls nicht angegeben
-    game_ready: false         # Standard falls nicht angegeben (Steam, Prism Launcher)
-
   roles:
-    # Gemeinsam (Desktop + Server)
-    - { role: packages,    tags: packages }
-    - { role: zsh,         tags: zsh }
-    - { role: dotfiles,    tags: dotfiles }
-    - { role: ssh_config,  tags: ssh }
-
-    # Nur Desktop – backgrounds ist container-tauglich (kopiert nur Bilder)
-    - { role: backgrounds, tags: backgrounds, when: install_mode == 'desktop' }
-
-    # Nur Desktop, NICHT in Molecule/Container-Tests
-    # (kde nutzt interaktives "pause" + konsave, nicht container-tauglich)
-    - { role: kde,         tags: kde,         when: install_mode == 'desktop' and not molecule_test | default(false) }
+    - { role: packages, tags: packages }
+    - { role: shell, tags: shell }
+    - { role: dotfiles, tags: dotfiles }
+    - { role: neovim, tags: neovim }
+    - { role: ssh, tags: ssh }
+    - role: kde
+      tags: kde
+      when: install_mode == 'desktop' and ansible_facts.distribution == 'Fedora'
+    - role: macos
+      tags: macos
+      when: install_mode == 'desktop' and ansible_facts.distribution == 'MacOSX'

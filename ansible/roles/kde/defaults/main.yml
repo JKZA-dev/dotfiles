@@ -1,0 +1,8 @@
+---
+kde_profile: JKZA-KDE-Workstation
+kde_apply_profile: false
+kde_splash:
+  color: "#00f000"
+  layout: full # logo | full | info
+  background: transparent
+kde_konsave: "{{ ansible_facts.user_dir }}/.local/bin/konsave"

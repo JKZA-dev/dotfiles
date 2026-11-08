@@ -1,0 +1,4 @@
+---
+install_mode: desktop # desktop | server
+gaming: false
+dotfiles_dir: "{{ ansible_facts.user_dir }}/dotfiles"

@@ -1,0 +1,11 @@
+---
+- name: Install Homebrew formulae
+  community.general.homebrew:
+    name: "{{ packages_selected_native }}"
+    state: present
+
+- name: Install Homebrew casks
+  community.general.homebrew_cask:
+    name: "{{ packages_selected_apps }}"
+    state: present
+  when: packages_selected_apps | length > 0

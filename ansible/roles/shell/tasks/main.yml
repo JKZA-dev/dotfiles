@@ -1,0 +1,25 @@
+---
+- name: Create Oh-My-Zsh custom directories
+  ansible.builtin.file:
+    path: "{{ ansible_facts.user_dir }}/.config/zsh/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: [themes, plugins]
+
+- name: Link vendored zsh components
+  ansible.builtin.file:
+    src: "{{ dotfiles_dir }}/vendor/{{ item.src }}"
+    dest: "{{ ansible_facts.user_dir }}/{{ item.dest }}"
+    state: link
+  loop:
+    - { src: ohmyzsh, dest: .oh-my-zsh }
+    - { src: powerlevel10k, dest: .config/zsh/themes/powerlevel10k }
+    - { src: zsh-autosuggestions, dest: .config/zsh/plugins/zsh-autosuggestions }
+  loop_control:
+    label: "{{ item.dest }}"
+
+- name: Set zsh as login shell
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_facts.user_id }}"
+    shell: /bin/zsh

@@ -1,0 +1,7 @@
+[Daemon]
+LockGrace=30
+Timeout=10
+
+[Greeter][Wallpaper][org.kde.image][General]
+Image=file://__HOME__/Pictures/Hacknet/Starfield0 (modded).png
+PreviewImage=file://__HOME__/Pictures/Hacknet/Starfield0 (modded).png

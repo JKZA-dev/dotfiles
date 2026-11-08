@@ -1,0 +1,8 @@
+[Libinput][1133][49970][Logitech Gaming Mouse G502]
+PointerAcceleration=1.000
+PointerAccelerationProfile=1
+
+[Libinput][1739][31251][DLL07BE:01 06CB:7A13 Touchpad]
+MiddleButtonEmulation=true
+NaturalScroll=true
+ScrollFactor=1

@@ -1,54 +1,101 @@
-# Rolle: kde – KDE Plasma Profil mit Konsave
-#
-# Importiert dein KDE-Setup (Theme, Icons, Panels, Widgets, Farben)
-# und fragt ob es direkt angewendet werden soll.
-#
-# Wird nur im Desktop-Modus ausgeführt (gesteuert über setup.yml).
 ---
+- name: Install fastfetch splash
+  vars:
+    kde_splash_src: "{{ dotfiles_dir }}/vendor/fastfetch-kde-splash"
+    kde_splash_dest: "{{ ansible_facts.user_dir }}/.local/share/plasma/look-and-feel/fastfetch-splash"
+  block:
+    - name: Create splash directory
+      ansible.builtin.file:
+        path: "{{ kde_splash_dest }}/contents/splash"
+        state: directory
+        mode: "0755"
 
-- name: "Konsave per pip installieren"
-  ansible.builtin.pip:
+    - name: Copy splash metadata
+      ansible.builtin.copy:
+        src: "{{ kde_splash_src }}/{{ item.src }}"
+        dest: "{{ kde_splash_dest }}/{{ item.dest }}"
+        remote_src: true
+        mode: preserve
+      loop:
+        - { src: metadata.json, dest: metadata.json }
+        - { src: contents/previews/, dest: contents/previews/ }
+
+    - name: Read upstream Splash.qml
+      ansible.builtin.slurp:
+        src: "{{ kde_splash_src }}/contents/splash/Splash.qml"
+      register: kde_splash_qml
+
+    # Same substitutions as upstream's interactive install.sh.
+    - name: Write configured Splash.qml
+      ansible.builtin.copy:
+        dest: "{{ kde_splash_dest }}/contents/splash/Splash.qml"
+        mode: "0644"
+        content: >-
+          {{ kde_splash_qml.content | b64decode
+             | regex_replace('property bool isConfigured: .*', 'property bool isConfigured: true')
+             | regex_replace('property string themeColor: ".*"', 'property string themeColor: "' ~ kde_splash.color ~ '"')
+             | regex_replace('property string displayMode: ".*"', 'property string displayMode: "' ~ kde_splash.layout ~ '"')
+             | regex_replace('property string bgColor: ".*"', 'property string bgColor: "' ~ kde_splash.background ~ '"') }}
+
+- name: Install konsave
+  community.general.pipx:
     name: konsave
-    extra_args: --user
+    state: present
 
-
-# Prüfen ob Profil schon importiert ist
-
-- name: "Importierte Konsave-Profile auflisten"
-  ansible.builtin.command:
-    cmd: "{{ ansible_env.HOME }}/.local/bin/konsave -l"
-  register: konsave_profiles
+- name: List imported konsave profiles
+  ansible.builtin.command: "{{ kde_konsave }} -l"
   changed_when: false
-  ignore_errors: true
+  failed_when: false # exits non-zero while no profile exists
+  register: kde_profiles
 
-- name: "KDE-Profil importieren"
-  ansible.builtin.command:
-    cmd: "{{ ansible_env.HOME }}/.local/bin/konsave -i {{ dotfiles_dir }}/konsave/JKZA-KDE-Workstation.knsv"
-  when: >
-    konsave_profiles.rc != 0 or
-    'JKZA-KDE-Workstation' not in konsave_profiles.stdout
+- name: Import KDE profile
+  when: kde_profile not in kde_profiles.stdout
+  block:
+    - name: Create build directory
+      ansible.builtin.tempfile:
+        state: directory
+      register: kde_build
 
+    - name: Copy profile to build directory
+      ansible.builtin.copy:
+        src: "{{ dotfiles_dir }}/kde/profile/"
+        dest: "{{ kde_build.path }}/profile/"
+        remote_src: true
+        mode: preserve
 
-# Nachfragen ob das Profil direkt angewendet werden soll.
-# "pause" hält das Playbook an und wartet auf Eingabe.
+    - name: Find files with home placeholders
+      ansible.builtin.command: grep -rlIF __HOME__ {{ kde_build.path }}/profile
+      changed_when: false
+      failed_when: kde_placeholders.rc > 1 # 1 means no match
+      register: kde_placeholders
 
-- name: "KDE-Profil jetzt anwenden? (y/n)"
-  ansible.builtin.pause:
-    prompt: >
-      KDE-Profil 'JKZA-KDE-Workstation' wurde importiert.
+    - name: Insert home directory
+      ansible.builtin.replace:
+        path: "{{ item }}"
+        regexp: __HOME__
+        replace: "{{ ansible_facts.user_dir }}"
+      loop: "{{ kde_placeholders.stdout_lines }}"
+      loop_control:
+        label: "{{ item | basename }}"
 
-      Soll es JETZT angewendet werden? Das überschreibt dein aktuelles KDE-Layout.
-      Nach dem Anwenden musst du dich ausloggen/einloggen.
+    - name: Pack profile
+      community.general.archive:
+        path: "{{ kde_build.path }}/profile/*"
+        dest: "{{ kde_build.path }}/{{ kde_profile }}.knsv"
+        format: zip
+        mode: "0644"
 
-      Anwenden? (y/n)
-  register: kde_anwenden
+    - name: Import profile into konsave
+      ansible.builtin.command: "{{ kde_konsave }} -i {{ kde_build.path }}/{{ kde_profile }}.knsv"
+      changed_when: true
+  always:
+    - name: Remove build directory
+      ansible.builtin.file:
+        path: "{{ kde_build.path }}"
+        state: absent
+      when: kde_build.path is defined
 
-- name: "KDE-Profil anwenden"
-  ansible.builtin.command:
-    cmd: "{{ ansible_env.HOME }}/.local/bin/konsave -a JKZA-KDE-Workstation"
-  when: kde_anwenden.user_input | lower in ['y', 'yes']
-
-- name: "KDE-Profil wurde NICHT angewendet"
-  ansible.builtin.debug:
-    msg: "Profil nicht angewendet. Manuell anwenden: konsave -a JKZA-KDE-Workstation"
-  when: kde_anwenden.user_input | lower not in ['y', 'yes']
+- name: Apply KDE profile
+  ansible.builtin.command: "{{ kde_konsave }} -a {{ kde_profile }}"
+  changed_when: true
+  when: kde_apply_profile
